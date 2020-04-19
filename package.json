@@ -3,17 +3,21 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "next",
-    "build": "next build",
-    "start": "next start"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "scripts": {
+    "build": "next build",
+    "dev": "next",
+    "format": "prettier --write \"**/*.{js,json}\"",
+    "start": "next start"
+  },
   "dependencies": {
     "next": "9.3.5",
     "react": "16.13.1",
     "react-dom": "16.13.1"
+  },
+  "devDependencies": {
+    "prettier": "2.0.4"
   }
 }
