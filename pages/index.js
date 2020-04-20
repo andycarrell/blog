@@ -196,8 +196,8 @@ export default function Index() {
             </ExternalLink>{" "}
             ". We can access the entire schema at:
           </Paragraph>
-          <Box textAlign="center" marginX="auto">
-            <Code>{`https://{API_SERVICE_DOMAIN}/playground`}</Code>
+          <Box textAlign="center" marginX="auto" padding={2}>
+            <Code.Inline>{`https://{API_SERVICE_DOMAIN}/playground`}</Code.Inline>
           </Box>
           <Paragraph>
             Copy the definition into a file that can be imported as a plain
@@ -279,11 +279,11 @@ addMockFunctionsToSchema({ schema, mocks });`}
             number, etc. So you can already get the right shape of result.
           </Quote>
           <Paragraph>
-            This is immediately a big win - any Query or Mutation we resolve
-            against this schema will return with some result. We could drop in
-            this executable schema and have a mock straightaway. The mock
-            wouldn't be particularly reliable or consistent, so isn't a great
-            fit for testing yet.
+            This is immediately a big win    —   any Query or Mutation we
+            resolve against this schema will return with some result. We could
+            drop in this executable schema and have a mock straightaway. The
+            mock wouldn't be particularly reliable or consistent, so isn't a
+            great fit for testing yet.
           </Paragraph>
           <Paragraph>
             Conversely, the entire schema being mocked is extremely helpful for
@@ -445,6 +445,193 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
     });
   }
 );`}
+          </Code>
+          <Heading2>Changing mocks between tests</Heading2>
+          <Paragraph>
+            The mock we've made has a couple of limitations: any queries or
+            mutations that pass variables will fail and our mock resolvers are
+            "static", (defined once, hard-coded when we made the executable
+            schema). This is less than ideal because we would have to use the
+            same mock definition for every test.
+          </Paragraph>
+          <Paragraph>
+            Passing variables applies to almost every mutation, so we'll fairly
+            quickly run into this issue. These queries will fail because{" "}
+            <Text as="i">
+              we haven't yet passed the variables to the{" "}
+              <Code.Inline>graphql</Code.Inline> function to resolve against the
+              schema
+            </Text>
+            . The variables are passed as part of the "body" to fetch and need
+            to be passed as the 5th argument to{" "}
+            <Code.Inline>graphql</Code.Inline>.
+          </Paragraph>
+          <Code>
+            {`// const resolve = ...
+
+const fetchMock = (_, { body }) => {
+  const { query, variables } = JSON.parse(body);
+  return graphql(schema, query, {}, {}, variables).then(resolve);
+};
+
+// Cypress.Commands.add("mockGraphQLApi", ...)`}
+          </Code>
+          <Paragraph>
+            The next step is to merge default resolvers (which we've already
+            defined) with specific resolvers, providing flexibility each time we
+            mock the API.
+          </Paragraph>
+          <Paragraph>
+            It's worth noting at this point that the following functionality has
+            been recognised as valuable, and potentially should be included in
+            grapql-tools.{" "}
+            <ExternalLink href="https://github.com/Urigo/graphql-tools/pull/1084">
+              At the time of writing there's an open pull request
+            </ExternalLink>
+            . It's worth checking if this has been merged and the functionality
+            added within the package.
+          </Paragraph>
+          <Paragraph>
+            We initially defined our mocks where we made the schema executable:
+          </Paragraph>
+          <Code>
+            {`// Completely static
+const mocks = {
+  // ...
+};
+
+addMockFunctionsToSchema({ schema, mocks });`}
+          </Code>
+          <Paragraph>
+            Defining the mocks once is a big limitation    —   we really want to
+            be able to change the mock per test, so that we can tailor the
+            conditions we're testing under. This is initially fairly simple    —
+              generate the schema dynamically each time we call the custom
+            Cypress command:
+          </Paragraph>
+          <Code>
+            {`import schemaString from './schemaDefinition';
+function makeMockedSchema({ mocks }) {
+  const schema = makeExecutableSchema({ typeDefs: schemaString });
+  addMockFunctionsToSchema({ schema, mocks });
+  return schema;
+}
+
+Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
+  (mocks = {}) => {
+    const schema = makeMockedSchema({ mocks });
+    const queryUrl =
+      \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;
+
+    function fetchMock(_, { body }) {
+      const { query, variables } = JSON.parse(body);
+      return graphql(
+        schema, query, {}, {}, variables,
+      ).then(resolve);
+    }
+
+    // cy.on("window:before:load", ...)
+  }
+);`}
+          </Code>
+          <Paragraph>
+            This does allow us to define a different mock per test, but in every
+            test we would have to also set any defaults that our schema
+            required     —  for example setting a resolver for{" "}
+            <Code.Inline>DateTime</Code.Inline>:
+          </Paragraph>
+          <Code>
+            {`cy.mockGraphQLApi({
+  DateTime: () => new Date().toISOString(),
+  // ... specific content we want to mock for this test
+});`}
+          </Code>
+          <Paragraph>
+            Whilst merging objects in JS using the spread operator (or even
+            <Code.Inline>Object.assign</Code.Inline>) is fairly common, it won't
+            be sufficient in this case. Most graphQL schemas will require deeply
+            nesting objects, and the nested values of those objects may be
+            functions (resolvers) too:
+          </Paragraph>
+          <Code>
+            {`cy.mockGraphQLApi({
+  DateTime: () => new Date().toISOString(),
+  Account: () => ({
+    email: "mocked@gmail.com",
+    address: () => ({
+      city: "Auckland",
+      country: "New Zealand",
+    }),
+  }),
+});`}
+          </Code>
+          <Paragraph>
+            Both these caveats mean simple object merging will not be
+            sufficient. Fortunately the{" "}
+            <ExternalLink href="https://www.freecodecamp.org/news/a-new-approach-to-mocking-graphql-data-1ef49de3d491/">
+              Stripe guide
+            </ExternalLink>{" "}
+            (which we followed right at the start of this guide) links to a
+            function which can be used to merge default mocks with test specific
+            definitions.
+          </Paragraph>
+          <Code>
+            {`function mergeResolvers(target, input) {
+  const inputTypenames = Object.keys(input);
+
+  return inputTypenames.reduce(
+    (accum, key) => {
+      const inputResolver = input[key];
+      if (key in target) {
+        const targetResolver = target[key];
+        const resolvedInput = inputResolver();
+        const resolvedTarget = targetResolver();
+
+        if (
+          !!resolvedTarget &&
+          !!resolvedInput &&
+          typeof resolvedTarget === "object" &&
+          typeof resolvedInput === "object" &&
+          !Array.isArray(resolvedTarget) &&
+          !Array.isArray(resolvedInput)
+        ) {
+          const newValue = { ...resolvedTarget, ...resolvedInput };
+          return { ...accum, [key]: () => newValue };
+        }
+      }
+      return { ...accum, [key]: inputResolver };
+    },
+    { ...target }
+  );
+}`}
+          </Code>
+          <Paragraph>
+            The original code for the merge resolvers function is{" "}
+            <ExternalLink href="https://gist.github.com/hellendag/2aa9ad1f9b771f38802760c269bb1b76">
+              in a Github gist
+            </ExternalLink>
+            , it's not long and can easily be copied into your project. We
+            "maintain" a copy, although we haven't had to change it as yet.
+          </Paragraph>
+          <Paragraph>
+            We can then separate out our "default" mocks, (which we want to
+            apply every time we mock the API), and mock definitions per test,
+            then merge them in when we add mock functions to the schema:
+          </Paragraph>
+          <Code>
+            {`const defaultMocks = {
+  DateTime: () => new Date(new Date()).toISOString(),
+  Fraction: () => ({ numerator: 10, denominator: 45 }),
+};
+
+function makeMockedSchema({ mocks }) {
+  const schema = makeExecutableSchema({ typeDefs: schemaString });
+  const mergedMocks = mergeResolvers(defaultMocks, mocks);
+  addMockFunctionsToSchema({ schema, mocks: mergedMocks });
+  return schema;
+}
+
+// Cypress.Commands.add("mockGraphQLApi", ...)`}
           </Code>
         </Stack>
       </Page>
