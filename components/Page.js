@@ -1,11 +1,5 @@
 import { Box, Text, Flex, Icon } from "@chakra-ui/core";
-import { Fragment, useEffect } from "react";
-
-function useBodyOverflowHidden() {
-  useEffect(() => {
-    document.body.style = "overflow-x: hidden;";
-  }, []);
-}
+import { Fragment } from "react";
 
 const Layout = ({ children }) => (
   <Box
@@ -52,7 +46,6 @@ const Header = () => (
 );
 
 export default function Page({ children }) {
-  useBodyOverflowHidden();
   return (
     <Fragment>
       <Header />
