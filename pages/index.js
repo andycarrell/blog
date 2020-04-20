@@ -1,5 +1,7 @@
 import { Box, Text, Stack, Link } from "@chakra-ui/core";
 import Chakra from "../components/Chakra";
+import Page from "../components/Page";
+import useTitle from "../hooks/useTitle";
 
 const ExternalLink = ({ children, href, ...rest }) => (
   <Link {...rest} href={href} color="cyan.700" isExternal>
@@ -54,9 +56,11 @@ UnorderedList.Item = ({ children, ...rest }) => (
 );
 
 export default function Index() {
+  useTitle("andycarrell > Blog");
+
   return (
     <Chakra>
-      <Chakra.Layout>
+      <Page>
         <Stack>
           <Box marginY={[5, 5, 6, 8]} paddingTop={6}>
             <Heading1>Mocking GraphQL in Cypress</Heading1>
@@ -142,7 +146,7 @@ export default function Index() {
             <code>{`https://{API_SERVICE_DOMAIN}/playground`}</code>
           </Text>
         </Stack>
-      </Chakra.Layout>
+      </Page>
     </Chakra>
   );
 }
