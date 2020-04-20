@@ -1,4 +1,13 @@
-import { Box, Text, Flex, Icon } from "@chakra-ui/core";
+import React from "react";
+import {
+  Box,
+  Text,
+  Flex,
+  Icon,
+  ThemeProvider,
+  CSSReset,
+  theme,
+} from "@chakra-ui/core";
 
 const Layout = ({ children }) => (
   <Box
@@ -46,9 +55,10 @@ const Header = () => (
 
 export default function Page({ children }) {
   return (
-    <div>
+    <ThemeProvider theme={theme}>
+      <CSSReset />
       <Header />
       <Layout>{children}</Layout>
-    </div>
+    </ThemeProvider>
   );
 }
