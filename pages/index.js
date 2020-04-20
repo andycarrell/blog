@@ -10,10 +10,12 @@ const ExternalLink = ({ children, href, ...rest }) => (
 const Heading1 = ({ children, ...rest }) => (
   <Text
     {...rest}
-    fontSize={["4xl", "4xl", "5xl", "5xl"]}
-    color="gray.700"
     textAlign="center"
     mx="auto"
+    fontWeight="medium"
+    fontFamily="heading"
+    fontSize={["4xl", "4xl", "5xl", "5xl"]}
+    color="gray.700"
     as="h1"
   >
     {children}
@@ -23,6 +25,8 @@ const Heading1 = ({ children, ...rest }) => (
 const Heading2 = ({ children, ...rest }) => (
   <Text
     {...rest}
+    fontWeight="medium"
+    fontFamily="heading"
     fontSize={["2xl", "2xl", "3xl", "3xl"]}
     color="gray.600"
     as="h2"
@@ -32,13 +36,13 @@ const Heading2 = ({ children, ...rest }) => (
 );
 
 const Paragraph = ({ children, ...rest }) => (
-  <Text {...rest} as="p">
+  <Text {...rest} as="p" lineHeight="tall">
     {children}
   </Text>
 );
 
 const UnorderedList = ({ children, ...rest }) => (
-  <Stack {...rest} spacing={2} as="ul">
+  <Stack {...rest} spacing={2} as="ul" lineHeight="tall">
     {children}
   </Stack>
 );
@@ -53,8 +57,10 @@ export default function Index() {
   return (
     <Chakra>
       <Chakra.Layout>
-        <Stack marginTop={[5, 5, 6, 8]}>
-          <Heading1>Mocking GraphQL in Cypress</Heading1>
+        <Stack>
+          <Box marginY={[5, 5, 6, 8]} paddingTop={6}>
+            <Heading1>Mocking GraphQL in Cypress</Heading1>
+          </Box>
           <Paragraph>
             This is a detailed guide to mocking a graphQL API for{" "}
             <ExternalLink href="https://www.cypress.io/">
