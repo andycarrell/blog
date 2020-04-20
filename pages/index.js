@@ -115,7 +115,7 @@ export default function Index() {
   return (
     <Chakra>
       <Page>
-        <Stack paddingY={6}>
+        <Stack>
           <Box marginY={[5, 5, 6, 8]}>
             <Heading1>Mocking GraphQL in Cypress</Heading1>
           </Box>

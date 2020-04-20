@@ -12,6 +12,8 @@ const Layout = ({ children }) => (
     maxWidth={["100%", "100%", "560px", "720px"]}
     marginX="auto"
     paddingX={2}
+    paddingTop={[4, 4, 6, 6]}
+    paddingBottom={[24, 24, 32, 32]}
   >
     {children}
   </Box>
