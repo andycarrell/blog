@@ -91,7 +91,14 @@ const Code = ({ children, ...rest }) => {
 };
 
 Code.Inline = ({ children }) => (
-  <Text as="span" borderRadius="sm" backgroundColor="gray.50" padding={1}>
+  <Text
+    as="span"
+    borderRadius="sm"
+    backgroundColor="gray.50"
+    fontSize="sm"
+    lineHeight="tall"
+    padding={1}
+  >
     <code>{children}</code>
   </Text>
 );
