@@ -1,5 +1,4 @@
 import { Box, Text, Flex, Icon } from "@chakra-ui/core";
-import { Fragment } from "react";
 
 const Layout = ({ children }) => (
   <Box
@@ -47,9 +46,9 @@ const Header = () => (
 
 export default function Page({ children }) {
   return (
-    <Fragment>
+    <div>
       <Header />
       <Layout>{children}</Layout>
-    </Fragment>
+    </div>
   );
 }
