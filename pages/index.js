@@ -1,4 +1,11 @@
-import { Box, Text, Stack, Link } from "@chakra-ui/core";
+import {
+  Box,
+  IconButton,
+  Text,
+  Stack,
+  Link,
+  useClipboard,
+} from "@chakra-ui/core";
 import Chakra from "../components/Chakra";
 import Page from "../components/Page";
 import useTitle from "../hooks/useTitle";
@@ -55,19 +62,33 @@ UnorderedList.Item = ({ children, ...rest }) => (
   </Text>
 );
 
-const Code = ({ children, ...rest }) => (
-  <Text
-    {...rest}
-    backgroundColor="gray.50"
-    whiteSpace="pre"
-    fontSize="sm"
-    lineHeight="tall"
-    borderRadius="md"
-    padding={4}
-  >
-    <code>{children}</code>
-  </Text>
-);
+const Code = ({ children, ...rest }) => {
+  const { onCopy, hasCopied } = useClipboard(children);
+
+  return (
+    <Text
+      {...rest}
+      backgroundColor="gray.50"
+      whiteSpace="pre"
+      fontSize="sm"
+      lineHeight="tall"
+      borderRadius="md"
+      position="relative"
+      padding={4}
+    >
+      <code>{children}</code>
+      <Box position="absolute" bottom="12px" right="12px">
+        <IconButton
+          size="sm"
+          onClick={onCopy}
+          aria-label={hasCopied ? "Copied" : "Copy"}
+          title={hasCopied ? "Copied" : "Copy"}
+          icon={hasCopied ? "check" : "copy"}
+        />
+      </Box>
+    </Text>
+  );
+};
 
 Code.Inline = ({ children }) => (
   <Text as="span" borderRadius="sm" backgroundColor="gray.50" padding={1}>
