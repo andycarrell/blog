@@ -142,9 +142,14 @@ export default function Index() {
             </ExternalLink>{" "}
             ". We can access the entire schema at:
           </Paragraph>
-          <Text textAlign="center" marginX="auto" marginY={2}>
+          <Text textAlign="center" marginX="auto" paddingY={2}>
             <code>{`https://{API_SERVICE_DOMAIN}/playground`}</code>
           </Text>
+          <Paragraph>
+            Copy the definition into a file that can be imported as a plain
+            string. We chose a plain JS file using string literals, because the
+            JS definition looks as close to the copied output as possible.
+          </Paragraph>
         </Stack>
       </Page>
     </Chakra>
