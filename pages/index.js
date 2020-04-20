@@ -241,6 +241,7 @@ export default function Index() {
 } from 'graphql-tools';
 
 import schemaString from './schemaDefinition';
+
 // Make a GraphQL schema with no resolvers
 const schema = makeExecutableSchema({ typeDefs: schemaString });
 // Add mocks, modifies schema in place
