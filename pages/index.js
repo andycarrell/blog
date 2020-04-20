@@ -60,9 +60,17 @@ const Code = ({ children, ...rest }) => (
     {...rest}
     backgroundColor="gray.50"
     whiteSpace="pre"
+    fontSize="sm"
+    lineHeight="tall"
     borderRadius="md"
     padding={4}
   >
+    <code>{children}</code>
+  </Text>
+);
+
+Code.Inline = ({ children }) => (
+  <Text as="span" borderRadius="sm" backgroundColor="gray.50" padding={1}>
     <code>{children}</code>
   </Text>
 );
@@ -257,6 +265,159 @@ addMockFunctionsToSchema({ schema, mocks });`}
             depend on, we have high confidence that tests only fail when the
             underlying code has changed.
           </Paragraph>
+          <Heading2>Stub window fetch</Heading2>
+          <Paragraph>
+            Disclaimer: we're using Apollo, which depends on{" "}
+            <ExternalLink href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API">
+              fetch
+            </ExternalLink>
+            . Other clients may use XHR, or you might be{" "}
+            <ExternalLink href="https://developer.mozilla.org/en-US/docs/Glossary/Polyfill">
+              polyfilling
+            </ExternalLink>{" "}
+            fetch. Depending on your exact use case, the following method might
+            not work directly copied from here. Investigate exactly how your app
+            interacts with the API  —  that's where you want to mock.
+          </Paragraph>
+          <Paragraph>
+            We'll stub the fetch function, using{" "}
+            <Code.Inline>cy.stub(...)</Code.Inline>, to replace the
+            functionality by resolving the query against our mock schema. Then
+            we'll create a{" "}
+            <ExternalLink href="https://docs.cypress.io/api/cypress-api/custom-commands.html#Syntax">
+              custom Cypress command
+            </ExternalLink>
+            , because there's work in replacing the built in fetch function that
+            would be tedious to do in every test. We want to have a different
+            mock in each test, so that we can define the shape of the mock we
+            need. This also allows us to only define the data we need, and
+            encourages keeping tests independent. If you're not familiar with
+            writing custom Cypress commands, check out the{" "}
+            <ExternalLink href="https://docs.cypress.io/api/cypress-api/custom-commands.html#Syntax">
+              official documentation
+            </ExternalLink>
+            .
+          </Paragraph>
+          <Paragraph>The end usage of the custom command looks like:</Paragraph>
+          <Code>
+            {`describe("Test - Accounts", () => {
+  it("should show an error when searching accounts", () => {
+    cy.mockGraphQLApi({
+      // Every instance of type Account will return:
+      Account: () => ({
+        email: "mocked@gmail.com",
+        firstName: "Katherine",
+        lastName: "French",
+      }),
+      // We can make queries fail by throwing an error
+      Query: () => ({
+        searchAccounts: () => {
+          throw new Error("InternalServerError");
+        },
+      }),
+    });
+
+    cy.visit("/accounts");
+
+    // Expect error state ...
+  });
+});`}
+          </Code>
+          <Paragraph>
+            As an aside   —   I generally prefer repetition in tests because the
+            consequence of over abstraction is much higher than application
+            code. Even so, we've still written a number of custom Cypress
+            commands extracting commands or sequences of commands where they are
+            used frequently, relatively complicated, or where the commands don't
+            concisely represent the intention of a test. We mock graphQL in
+            (almost) every test in this particular suite, so I think it's a
+            really good candidate for a custom command.
+          </Paragraph>
+          <Paragraph>
+            Back to stubbing <Code.Inline>window.fetch   </Code.Inline> —    the
+            Apollo documentation has{" "}
+            <ExternalLink href="https://www.apollographql.com/docs/graphql-tools/mocking/">
+              an example resolving a query against the schema
+            </ExternalLink>
+            :
+          </Paragraph>
+          <Code>
+            {`import { graphql } from "graphql";
+
+// Make a GraphQL schema with no resolvers
+// ...
+
+graphql(schema, query).then((result) => {
+  console.log('Got result', result);
+});`}
+          </Code>
+          <Paragraph>
+            We can use this function in place of where we would otherwise call
+            our API:
+          </Paragraph>
+          <Code>
+            {`import { graphql } from "graphql";
+
+// Make a GraphQL schema with no resolvers
+const resolve = result => ({
+  json: () => Promise.resolve(result),
+  text: () => Promise.resolve(JSON.stringify(result)),
+  ok: true,
+});
+
+Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
+  () => {
+    // Changes the window object before load
+    // Call cy.mockGraphQLApi(...) before visiting the page
+    cy.on("window:before:load", win => {
+      function fetch(_, { body }) {
+        const { query } = JSON.parse(body);
+        return graphql(schema, query).then(resolve);
+      }
+
+      cy.stub(win, "fetch").callsFake(fetch);
+    });
+  }
+);`}
+          </Code>
+          <Paragraph>
+            This may work as is, but for us there were other parts of the app
+            that required fetch to access the rest of the internet. The solution
+            was to preserve the original implementation, and only call the
+            stubbed version when the URL matches our API URL:
+          </Paragraph>
+          <Code>
+            {`import { graphql } from "graphql";
+
+// Make a GraphQL schema with no resolvers
+
+// const resolve = ...
+
+function fetchMock(_, { body }) {
+  const { query } = JSON.parse(body);
+  return graphql(schema, query).then(resolve);
+}
+
+Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
+  () => {
+    // Your API's url - we use Cypress environment variables
+    const queryUrl =
+      \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;
+
+    cy.on("window:before:load", win => {
+      // To debug here: const log = win.console.log
+      const originalFetch = win.fetch;
+      function fetch(url, ...rest) {
+        if (url === queryUrl) {
+          return fetchMock(url, ...rest);
+        }
+        return originalFetch(url, ...rest);
+      }
+      cy.stub(win, "fetch").callsFake(fetch);
+    });
+  }
+);`}
+          </Code>
         </Stack>
       </Page>
     </Chakra>
