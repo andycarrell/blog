@@ -77,7 +77,7 @@ const Code = ({ children, ...rest }) => {
       padding={4}
     >
       <code>{children}</code>
-      <Box position="absolute" bottom="12px" right="12px">
+      <Box as="span" position="absolute" bottom="12px" right="12px">
         <IconButton
           size="sm"
           onClick={onCopy}
