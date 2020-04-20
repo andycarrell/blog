@@ -205,14 +205,16 @@ export default function Index() {
             JS definition looks as close to the copied output as possible.
           </Paragraph>
           <Code>
-            {`export default \`
+            {`
+export default \`
   type Account {
     id: ID!
     email: String!
     firstName: String!
     lastName: String!
   }
-\``}
+\`
+`}
           </Code>
           <Paragraph>
             We depend on a static definition of our schema for graphQL mocks.
@@ -235,7 +237,8 @@ export default function Index() {
             .
           </Paragraph>
           <Code>
-            {`import {
+            {`
+import {
   makeExecutableSchema,
   addMockFunctionsToSchema,
 } from 'graphql-tools';
@@ -245,7 +248,8 @@ import schemaString from './schemaDefinition';
 // Make a GraphQL schema with no resolvers
 const schema = makeExecutableSchema({ typeDefs: schemaString });
 // Add mocks, modifies schema in place
-addMockFunctionsToSchema({ schema });`}
+addMockFunctionsToSchema({ schema });
+`}
           </Code>
           <Paragraph>
             We will define specific mock resolvers later, but for now the
@@ -258,14 +262,16 @@ addMockFunctionsToSchema({ schema });`}
               — so we define a 'resolver', which returns a mock value:
           </Paragraph>
           <Code>
-            {`// Add mocks, modifies schema in place
+            {`
+// Add mocks, modifies schema in place
 const mocks = {
   // Schema definition: 'scalar DateTime'
   // Also note the type - function that returns a primitive
   DateTime: () => new Date().toISOString(),
 }
 
-addMockFunctionsToSchema({ schema, mocks });`}
+addMockFunctionsToSchema({ schema, mocks });
+`}
           </Code>
           <Paragraph>
             To explain what these initial steps achieve (
@@ -329,7 +335,8 @@ addMockFunctionsToSchema({ schema, mocks });`}
           </Paragraph>
           <Paragraph>The end usage of the custom command looks like:</Paragraph>
           <Code>
-            {`describe("Test - Accounts", () => {
+            {`
+describe("Test - Accounts", () => {
   it("should show an error when searching accounts", () => {
     cy.mockGraphQLApi({
       // Every instance of type Account will return:
@@ -350,7 +357,8 @@ addMockFunctionsToSchema({ schema, mocks });`}
 
     // Expect error state ...
   });
-});`}
+});
+`}
           </Code>
           <Paragraph>
             As an aside   —   I generally prefer repetition in tests because the
@@ -371,21 +379,24 @@ addMockFunctionsToSchema({ schema, mocks });`}
             :
           </Paragraph>
           <Code>
-            {`import { graphql } from "graphql";
+            {`
+import { graphql } from "graphql";
 
 // Make a GraphQL schema with no resolvers
 // ...
 
 graphql(schema, query).then((result) => {
   console.log('Got result', result);
-});`}
+});
+`}
           </Code>
           <Paragraph>
             We can use this function in place of where we would otherwise call
             our API:
           </Paragraph>
           <Code>
-            {`import { graphql } from "graphql";
+            {`
+import { graphql } from "graphql";
 
 // Make a GraphQL schema with no resolvers
 const resolve = result => ({
@@ -407,7 +418,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
       cy.stub(win, "fetch").callsFake(fetch);
     });
   }
-);`}
+);
+`}
           </Code>
           <Paragraph>
             This may work as is, but for us there were other parts of the app
@@ -416,7 +428,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
             stubbed version when the URL matches our API URL:
           </Paragraph>
           <Code>
-            {`import { graphql } from "graphql";
+            {`
+import { graphql } from "graphql";
 
 // Make a GraphQL schema with no resolvers
 
@@ -445,7 +458,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
       cy.stub(win, "fetch").callsFake(fetch);
     });
   }
-);`}
+);
+`}
           </Code>
           <Heading2>Changing mocks between tests</Heading2>
           <Paragraph>
@@ -468,14 +482,16 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
             <Code.Inline>graphql</Code.Inline>.
           </Paragraph>
           <Code>
-            {`// const resolve = ...
+            {`
+// const resolve = ...
 
 const fetchMock = (_, { body }) => {
   const { query, variables } = JSON.parse(body);
   return graphql(schema, query, {}, {}, variables).then(resolve);
 };
 
-// Cypress.Commands.add("mockGraphQLApi", ...)`}
+// Cypress.Commands.add("mockGraphQLApi", ...)
+`}
           </Code>
           <Paragraph>
             The next step is to merge default resolvers (which we've already
@@ -496,12 +512,14 @@ const fetchMock = (_, { body }) => {
             We initially defined our mocks where we made the schema executable:
           </Paragraph>
           <Code>
-            {`// Completely static
+            {`
+// Completely static
 const mocks = {
   // ...
 };
 
-addMockFunctionsToSchema({ schema, mocks });`}
+addMockFunctionsToSchema({ schema, mocks });
+`}
           </Code>
           <Paragraph>
             Defining the mocks once is a big limitation    —   we really want to
@@ -511,7 +529,9 @@ addMockFunctionsToSchema({ schema, mocks });`}
             Cypress command:
           </Paragraph>
           <Code>
-            {`import schemaString from './schemaDefinition';
+            {`
+import schemaString from './schemaDefinition';
+
 function makeMockedSchema({ mocks }) {
   const schema = makeExecutableSchema({ typeDefs: schemaString });
   addMockFunctionsToSchema({ schema, mocks });
@@ -533,7 +553,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
 
     // cy.on("window:before:load", ...)
   }
-);`}
+);
+`}
           </Code>
           <Paragraph>
             This does allow us to define a different mock per test, but in every
@@ -542,10 +563,12 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
             <Code.Inline>DateTime</Code.Inline>:
           </Paragraph>
           <Code>
-            {`cy.mockGraphQLApi({
+            {`
+cy.mockGraphQLApi({
   DateTime: () => new Date().toISOString(),
   // ... specific content we want to mock for this test
-});`}
+});
+`}
           </Code>
           <Paragraph>
             Whilst merging objects in JS using the spread operator (or even
@@ -555,7 +578,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
             functions (resolvers) too:
           </Paragraph>
           <Code>
-            {`cy.mockGraphQLApi({
+            {`
+cy.mockGraphQLApi({
   DateTime: () => new Date().toISOString(),
   Account: () => ({
     email: "mocked@gmail.com",
@@ -564,7 +588,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
       country: "New Zealand",
     }),
   }),
-});`}
+});
+`}
           </Code>
           <Paragraph>
             Both these caveats mean simple object merging will not be
@@ -577,7 +602,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
             definitions.
           </Paragraph>
           <Code>
-            {`function mergeResolvers(target, input) {
+            {`
+function mergeResolvers(target, input) {
   const inputTypenames = Object.keys(input);
 
   return inputTypenames.reduce(
@@ -604,7 +630,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
     },
     { ...target }
   );
-}`}
+}
+`}
           </Code>
           <Paragraph>
             The original code for the merge resolvers function is{" "}
@@ -620,7 +647,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
             then merge them in when we add mock functions to the schema:
           </Paragraph>
           <Code>
-            {`const defaultMocks = {
+            {`
+const defaultMocks = {
   DateTime: () => new Date(new Date()).toISOString(),
   Fraction: () => ({ numerator: 10, denominator: 45 }),
 };
@@ -632,7 +660,8 @@ function makeMockedSchema({ mocks }) {
   return schema;
 }
 
-// Cypress.Commands.add("mockGraphQLApi", ...)`}
+// Cypress.Commands.add("mockGraphQLApi", ...)
+`}
           </Code>
           <Heading2>Mutations</Heading2>
           <Paragraph>
@@ -643,7 +672,8 @@ function makeMockedSchema({ mocks }) {
             respectively:
           </Paragraph>
           <Code>
-            {`cy.mockGraphQLApi({
+            {`
+cy.mockGraphQLApi({
   Account: () => ({
     email: "mocked@gmail.com",
     address: () => ({
@@ -668,7 +698,8 @@ function makeMockedSchema({ mocks }) {
       }),
     }),
   }),
-});`}
+});
+`}
           </Code>
           <Paragraph>
             Take note of the capitalisation  —  in our case types (Account,
@@ -691,7 +722,8 @@ function makeMockedSchema({ mocks }) {
             correct arguments.
           </Paragraph>
           <Code>
-            {`// For mutation definition:
+            {`
+// For mutation definition:
 // \`mutation { updateAccount(email: "\${email}") { email } }\`
 
 cy.mockGraphQLApi({
@@ -701,7 +733,8 @@ cy.mockGraphQLApi({
       // ...
     },
   });
-});`}
+});
+`}
           </Code>
           <Heading2>Piecing it all together</Heading2>
           <Paragraph>
@@ -715,7 +748,8 @@ cy.mockGraphQLApi({
             .
           </Paragraph>
           <Code>
-            {`import {
+            {`
+import {
   makeExecutableSchema,
   addMockFunctionsToSchema,
 } from "graphql-tools";
@@ -764,14 +798,16 @@ export default function makeMockedSchema({ mocks }) {
   addMockFunctionsToSchema({ schema, mocks: mergedMocks });
 
   return schema;
-}`}
+}
+`}
           </Code>
           <Paragraph>
             We then use <Code.Inline>makeMockedSchema</Code.Inline> in a custom
             Cypress command:
           </Paragraph>
           <Code>
-            {`import { graphql } from "graphql";
+            {`
+import { graphql } from "graphql";
 import makeMockedSchema from "./makeMockedSchema";
 
 const resolve = result => ({
@@ -802,7 +838,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
       cy.stub(win, "fetch").callsFake(fetch);
     });
   },
-);`}
+);
+`}
           </Code>
           <Paragraph>
             And that's it! I've seen some other implementations and attempts at
