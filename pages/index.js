@@ -259,7 +259,7 @@ addMockFunctionsToSchema({ schema });`}
           <Code>
             {`// Add mocks, modifies schema in place
 const mocks = {
-  // Schema definition: \`scalar DateTime\`
+  // Schema definition: 'scalar DateTime'
   // Also note the type - function that returns a primitive
   DateTime: () => new Date().toISOString(),
 }
@@ -633,6 +633,215 @@ function makeMockedSchema({ mocks }) {
 
 // Cypress.Commands.add("mockGraphQLApi", ...)`}
           </Code>
+          <Heading2>Mutations</Heading2>
+          <Paragraph>
+            So far we've exclusively looked at mock resolvers for entire types
+            on the schema, which does get us most of the way there. In the case
+            of a mutation  — or a query that isn't a one to one mapping to a
+            type  —  we need to mock resolvers for the Mutation / Query types
+            respectively:
+          </Paragraph>
+          <Code>
+            {`cy.mockGraphQLApi({
+  Account: () => ({
+    email: "mocked@gmail.com",
+    address: () => ({
+      city: "Auckland",
+      country: "New Zealand",
+    }),
+  }),
+  Query: () => ({
+    searchAccounts: () => [{
+      email: "faked@gmail.com",
+      address: () => ({
+        city: "Wellington",
+        country: "New Zealand",
+      }),
+    }],
+  }),
+  Mutation: () => ({
+    updateAccount: () => ({
+      address: () => ({
+        city: "Sydney",
+        country: "Australia",
+      }),
+    }),
+  }),
+});`}
+          </Code>
+          <Paragraph>
+            Take note of the capitalisation  —  in our case types (Account,
+            Query, Mutation), are{" "}
+            <ExternalLink href="https://techterms.com/definition/pascalcase">
+              Pascal case
+            </ExternalLink>{" "}
+            (upper camel case), and properties on types are{" "}
+            <ExternalLink href="https://techterms.com/definition/camelcase">
+              camel case
+            </ExternalLink>
+            . Although this matches our schema convention, forgetting to switch
+            between the two can still be a bit of a trap.
+          </Paragraph>
+          <Paragraph>
+            We can also access the variables passed to a mutation or query from
+            the second argument to our mock resolver. This is extremely useful
+            for creating responsive mocks (which change based on what they're
+            called with) and for asserting that the mock is called with the
+            correct arguments.
+          </Paragraph>
+          <Code>
+            {`// For mutation definition:
+// \`mutation { updateAccount(email: "\${email}") { email } }\`
+
+cy.mockGraphQLApi({
+  Mutation: () => ({
+    updateAccount: (_, { email }) => {
+      console.log(email);
+      // ...
+    },
+  });
+});`}
+          </Code>
+          <Heading2>Piecing it all together</Heading2>
+          <Paragraph>
+            Alongside our schema definition, we extract{" "}
+            <Code.Inline>makeMockedSchema</Code.Inline> into its own file. This
+            enables us to reuse the mock in both Cypress and unit tests. FFor
+            our unit tests we followed{" "}
+            <ExternalLink href="https://www.freecodecamp.org/news/a-new-approach-to-mocking-graphql-data-1ef49de3d491/">
+              the rest of the Stripe guide
+            </ExternalLink>
+            .
+          </Paragraph>
+          <Code>
+            {`import {
+  makeExecutableSchema,
+  addMockFunctionsToSchema,
+} from "graphql-tools";
+// This is the schema string
+import schemaDefinition from "./schemaDefinition";
+
+function mergeResolvers(target, input) {
+  const inputTypenames = Object.keys(input);
+
+  return inputTypenames.reduce(
+    (accum, key) => {
+      const inputResolver = input[key];
+      if (key in target) {
+        const targetResolver = target[key];
+        const resolvedInput = inputResolver();
+        const resolvedTarget = targetResolver();
+
+        if (
+          !!resolvedTarget &&
+          !!resolvedInput &&
+          typeof resolvedTarget === "object" &&
+          typeof resolvedInput === "object" &&
+          !Array.isArray(resolvedTarget) &&
+          !Array.isArray(resolvedInput)
+        ) {
+          const newValue = { ...resolvedTarget, ...resolvedInput };
+          return { ...accum, [key]: () => newValue };
+        }
+      }
+      return { ...accum, [key]: inputResolver };
+    },
+    { ...target }
+  );
+}
+
+const defaultMocks = {
+  DateTime: () => new Date(new Date()).toISOString(),
+  Fraction: () => ({ numerator: 10, denominator: 45 }),
+};
+
+export default function makeMockedSchema({ mocks }) {
+  const mergedMocks = mergeResolvers(defaultMocks, mocks);
+  const schema = makeExecutableSchema({
+    typeDefs: schemaDefinition,
+  });
+  addMockFunctionsToSchema({ schema, mocks: mergedMocks });
+
+  return schema;
+}`}
+          </Code>
+          <Paragraph>
+            We then use <Code.Inline>makeMockedSchema</Code.Inline> in a custom
+            Cypress command:
+          </Paragraph>
+          <Code>
+            {`import { graphql } from "graphql";
+import makeMockedSchema from "./makeMockedSchema";
+
+const resolve = result => ({
+  json: () => Promise.resolve(result),
+  text: () => Promise.resolve(JSON.stringify(result)),
+  ok: true,
+});
+
+Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
+  (mocks = {}) => {
+    const queryUrl =
+      \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;
+    const schema = makeMockedSchema({ mocks });
+    const fetchMock = (_, { body }) => {
+      const { query, variables } = JSON.parse(body);
+      return graphql(schema, query, {}, {}, variables)
+        .then(resolve);
+    };
+
+    cy.on("window:before:load", win => {
+      const originalFetch = win.fetch;
+      function fetch(url, ...rest) {
+        if (url === queryUrl) {
+          return fetchMock(url, ...rest);
+        }
+        return originalFetch(url, ...rest);
+      }
+      cy.stub(win, "fetch").callsFake(fetch);
+    });
+  },
+);`}
+          </Code>
+          <Paragraph>
+            And that's it! I've seen some other implementations and attempts at
+            sharing this functionality as a testing tool/library, but I've found
+            that owning this code gives us the flexibility to extend and change
+            it as we need. The maintenance overhead compared to the value this
+            adds has been an extremely good trade off for our team.
+          </Paragraph>
+          <Heading2>Conclusion</Heading2>
+          <Paragraph>
+            Using this simple mocking utility has enabled us to write a large
+            number of high fidelity tests that run completely independently of
+            our backend servers. In turn, this encourages good test coverage of
+            frontend features  —  not only has this been a development
+            productivity boost, but has caught countless bugs before they even
+            make their way to master.
+          </Paragraph>
+          <Paragraph>
+            In this guide, we've taken a look at how to mock a graphQL API in a
+            deterministic and reusable way. At a high level, we followed these
+            steps:
+          </Paragraph>
+          <UnorderedList>
+            <UnorderedList.Item>Copy schema definition</UnorderedList.Item>
+            <UnorderedList.Item>
+              Make an executable schema, merge default and custom resolvers
+            </UnorderedList.Item>
+            <UnorderedList.Item>
+              Stub fetch and resolve queries against the executable schema
+            </UnorderedList.Item>
+          </UnorderedList>
+          <Paragraph>
+            My intent is to share this method, so other teams can realise the
+            same benefits we have. At each step I've explained what we did and
+            why, but I appreciate information might be lacking  —  if so{" "}
+            <ExternalLink href="https://twitter.com/andy__carrell">
+              please reach out
+            </ExternalLink>{" "}
+            and I can attempt to clarify.
+          </Paragraph>
         </Stack>
       </Page>
     </Chakra>
