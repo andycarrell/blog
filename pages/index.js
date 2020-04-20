@@ -66,18 +66,16 @@ const Code = ({ children, ...rest }) => {
   const { onCopy, hasCopied } = useClipboard(children);
 
   return (
-    <Text
-      {...rest}
-      as="div"
-      backgroundColor="gray.50"
-      whiteSpace="pre"
-      fontSize="sm"
-      lineHeight="tall"
-      borderRadius="md"
-      position="relative"
-      padding={4}
-    >
-      <code>{children}</code>
+    <Box {...rest} backgroundColor="gray.50" position="relative" padding={4}>
+      <Text
+        whiteSpace="pre"
+        fontSize="sm"
+        lineHeight="tall"
+        borderRadius="md"
+        overflowX="scroll"
+      >
+        <code>{children}</code>
+      </Text>
       <Box as="span" position="absolute" bottom="12px" right="12px">
         <IconButton
           size="sm"
@@ -87,7 +85,7 @@ const Code = ({ children, ...rest }) => {
           icon={hasCopied ? "check" : "copy"}
         />
       </Box>
-    </Text>
+    </Box>
   );
 };
 
@@ -364,7 +362,7 @@ addMockFunctionsToSchema({ schema, mocks });
           good candidate for a custom command.
         </Paragraph>
         <Paragraph>
-          Back to stubbing <Code.Inline>window.fetch   </Code.Inline> —    the
+          Back to stubbing <Code.Inline>window.fetch</Code.Inline> —   the
           Apollo documentation has{" "}
           <ExternalLink href="https://www.apollographql.com/docs/graphql-tools/mocking/">
             an example resolving a query against the schema
@@ -556,7 +554,7 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
 `}
         </Code>
         <Paragraph>
-          Whilst merging objects in JS using the spread operator (or even
+          Whilst merging objects in JS using the spread operator (or even{" "}
           <Code.Inline>Object.assign</Code.Inline>) is fairly common, it won't
           be sufficient in this case. Most graphQL schemas will require deeply
           nesting objects, and the nested values of those objects may be
