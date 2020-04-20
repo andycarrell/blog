@@ -740,8 +740,8 @@ cy.mockGraphQLApi({
           <Paragraph>
             Alongside our schema definition, we extract{" "}
             <Code.Inline>makeMockedSchema</Code.Inline> into its own file. This
-            enables us to reuse the mock in both Cypress and unit tests. FFor
-            our unit tests we followed{" "}
+            enables us to reuse the mock in both Cypress and unit tests. For our
+            unit tests we followed{" "}
             <ExternalLink href="https://www.freecodecamp.org/news/a-new-approach-to-mocking-graphql-data-1ef49de3d491/">
               the rest of the Stripe guide
             </ExternalLink>
