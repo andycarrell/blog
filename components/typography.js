@@ -1,13 +1,14 @@
-import React from "react";
-
 import {
   Box,
+  Code,
   IconButton,
   Text,
   Stack,
   Link,
   useClipboard,
 } from "@chakra-ui/core";
+
+import CodeHighlighter from "./CodeHighlighter";
 
 export const ExternalLink = ({ children, href, ...rest }) => (
   <Link {...rest} href={href} color="cyan.700" isExternal>
@@ -74,7 +75,7 @@ export const Quote = ({ children, ...rest }) => (
   </Text>
 );
 
-export const Code = ({ children, ...rest }) => {
+export const CodeBlock = ({ children, ...rest }) => {
   const { onCopy, hasCopied } = useClipboard(children);
   const buttonLabel = hasCopied ? "Copied" : "Copy";
 
@@ -87,7 +88,9 @@ export const Code = ({ children, ...rest }) => {
       padding={4}
     >
       <Text whiteSpace="pre" fontSize="sm" lineHeight="tall" overflowX="scroll">
-        <code>{children}</code>
+        <code>
+          <CodeHighlighter>{children}</CodeHighlighter>
+        </code>
       </Text>
       <Box as="span" position="absolute" bottom="12px" right="12px">
         <IconButton
@@ -102,16 +105,14 @@ export const Code = ({ children, ...rest }) => {
   );
 };
 
-Code.Inline = ({ children }) => (
-  <Text
-    as="span"
-    borderRadius="sm"
+export const CodeInline = ({ children }) => (
+  <Code
     backgroundColor="gray.50"
     fontSize="sm"
     lineHeight="tall"
     wordBreak="break-all"
-    padding={1}
+    padding="2px"
   >
-    <code>{children}</code>
-  </Text>
+    {children}
+  </Code>
 );

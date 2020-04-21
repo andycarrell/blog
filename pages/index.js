@@ -1,9 +1,10 @@
-import { Box, Text, Stack, Code as ChakraCode } from "@chakra-ui/core";
+import { Box, Text, Stack } from "@chakra-ui/core";
 
 import Page from "../components/Page";
 import useTitle from "../hooks/useTitle";
 import {
-  Code,
+  CodeBlock,
+  CodeInline,
   Quote,
   Heading1,
   Heading2,
@@ -97,14 +98,14 @@ export default function Index() {
           ". We can access the entire schema at:
         </Paragraph>
         <Box textAlign="center" marginX="auto" padding={2}>
-          <Code.Inline>{`https://{API_SERVICE_DOMAIN}/playground`}</Code.Inline>
+          <CodeInline>{`https://{API_SERVICE_DOMAIN}/playground`}</CodeInline>
         </Box>
         <Paragraph>
           Copy the definition into a file that can be imported as a plain
           string. We chose a plain JS file using string literals, because the JS
           definition looks as close to the copied output as possible.
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`export default \`
   type Account {
     id: ID!
@@ -112,9 +113,8 @@ export default function Index() {
     firstName: String!
     lastName: String!
   }
-\`
-`}
-        </Code>
+\``}
+        </CodeBlock>
         <Paragraph>
           We depend on a static definition of our schema for graphQL mocks. This
           means every time the schema changes, we have to copy the new
@@ -135,7 +135,7 @@ export default function Index() {
           </ExternalLink>
           .
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`import {
   makeExecutableSchema,
   addMockFunctionsToSchema,
@@ -146,9 +146,8 @@ import schemaString from './schemaDefinition';
 // Make a GraphQL schema with no resolvers
 const schema = makeExecutableSchema({ typeDefs: schemaString });
 // Add mocks, modifies schema in place
-addMockFunctionsToSchema({ schema });
-`}
-        </Code>
+addMockFunctionsToSchema({ schema });`}
+        </CodeBlock>
         <Paragraph>
           We will define specific mock resolvers later, but for now the minimum
           requirement is to set defaults for any custom scalars you may have
@@ -159,7 +158,7 @@ addMockFunctionsToSchema({ schema });
           </ExternalLink>
             — so we define a 'resolver', which returns a mock value:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`// Add mocks, modifies schema in place
 const mocks = {
   // Schema definition: 'scalar DateTime'
@@ -167,9 +166,8 @@ const mocks = {
   DateTime: () => new Date().toISOString(),
 }
 
-addMockFunctionsToSchema({ schema, mocks });
-`}
-        </Code>
+addMockFunctionsToSchema({ schema, mocks });`}
+        </CodeBlock>
         <Paragraph>
           To explain what these initial steps achieve (
           <ExternalLink href="https://www.apollographql.com/docs/graphql-tools/mocking/#default-mock-example">
@@ -213,8 +211,8 @@ addMockFunctionsToSchema({ schema, mocks });
         </Paragraph>
         <Paragraph>
           We'll stub the fetch function, using{" "}
-          <Code.Inline>cy.stub(...)</Code.Inline>, to replace the functionality
-          by resolving the query against our mock schema. Then we'll create a{" "}
+          <CodeInline>cy.stub(...)</CodeInline>, to replace the functionality by
+          resolving the query against our mock schema. Then we'll create a{" "}
           <ExternalLink href="https://docs.cypress.io/api/cypress-api/custom-commands.html#Syntax">
             custom Cypress command
           </ExternalLink>
@@ -230,7 +228,7 @@ addMockFunctionsToSchema({ schema, mocks });
           .
         </Paragraph>
         <Paragraph>The end usage of the custom command looks like:</Paragraph>
-        <Code>
+        <CodeBlock>
           {`describe("Test - Accounts", () => {
   it("should show an error when searching accounts", () => {
     cy.mockGraphQLApi({
@@ -252,9 +250,8 @@ addMockFunctionsToSchema({ schema, mocks });
 
     // Expect error state ...
   });
-});
-`}
-        </Code>
+});`}
+        </CodeBlock>
         <Paragraph>
           As an aside   —   I generally prefer repetition in tests because the
           consequence of over abstraction is much higher than application code.
@@ -266,14 +263,14 @@ addMockFunctionsToSchema({ schema, mocks });
           good candidate for a custom command.
         </Paragraph>
         <Paragraph>
-          Back to stubbing <Code.Inline>window.fetch</Code.Inline> —   the
-          Apollo documentation has{" "}
+          Back to stubbing <CodeInline>window.fetch</CodeInline> —   the Apollo
+          documentation has{" "}
           <ExternalLink href="https://www.apollographql.com/docs/graphql-tools/mocking/">
             an example resolving a query against the schema
           </ExternalLink>
           :
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`import { graphql } from "graphql";
 
 // Make a GraphQL schema with no resolvers
@@ -281,14 +278,13 @@ addMockFunctionsToSchema({ schema, mocks });
 
 graphql(schema, query).then((result) => {
   console.log('Got result', result);
-});
-`}
-        </Code>
+});`}
+        </CodeBlock>
         <Paragraph>
           We can use this function in place of where we would otherwise call our
           API:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`import { graphql } from "graphql";
 
 // Make a GraphQL schema with no resolvers
@@ -311,16 +307,15 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
       cy.stub(win, "fetch").callsFake(fetch);
     });
   }
-);
-`}
-        </Code>
+);`}
+        </CodeBlock>
         <Paragraph>
           This may work as is, but for us there were other parts of the app that
           required fetch to access the rest of the internet. The solution was to
           preserve the original implementation, and only call the stubbed
           version when the URL matches our API URL:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`import { graphql } from "graphql";
 
 // Make a GraphQL schema with no resolvers
@@ -350,9 +345,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
       cy.stub(win, "fetch").callsFake(fetch);
     });
   }
-);
-`}
-        </Code>
+);`}
+        </CodeBlock>
         <Heading2>Changing mocks between tests</Heading2>
         <Paragraph>
           The mock we've made has a couple of limitations: any queries or
@@ -366,13 +360,13 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
           quickly run into this issue. These queries will fail because{" "}
           <Text as="i">
             we haven't yet passed the variables to the{" "}
-            <Code.Inline>graphql</Code.Inline> function to resolve against the
+            <CodeInline>graphql</CodeInline> function to resolve against the
             schema
           </Text>
           . The variables are passed as part of the "body" to fetch and need to
-          be passed as the 5th argument to <Code.Inline>graphql</Code.Inline>.
+          be passed as the 5th argument to <CodeInline>graphql</CodeInline>.
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`// const resolve = ...
 
 const fetchMock = (_, { body }) => {
@@ -380,9 +374,8 @@ const fetchMock = (_, { body }) => {
   return graphql(schema, query, {}, {}, variables).then(resolve);
 };
 
-// Cypress.Commands.add("mockGraphQLApi", ...)
-`}
-        </Code>
+// Cypress.Commands.add("mockGraphQLApi", ...)`}
+        </CodeBlock>
         <Paragraph>
           The next step is to merge default resolvers (which we've already
           defined) with specific resolvers, providing flexibility each time we
@@ -401,15 +394,14 @@ const fetchMock = (_, { body }) => {
         <Paragraph>
           We initially defined our mocks where we made the schema executable:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`// Completely static
 const mocks = {
   // ...
 };
 
-addMockFunctionsToSchema({ schema, mocks });
-`}
-        </Code>
+addMockFunctionsToSchema({ schema, mocks });`}
+        </CodeBlock>
         <Paragraph>
           Defining the mocks once is a big limitation    —   we really want to
           be able to change the mock per test, so that we can tailor the
@@ -417,7 +409,7 @@ addMockFunctionsToSchema({ schema, mocks });
             generate the schema dynamically each time we call the custom Cypress
           command:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`import schemaString from './schemaDefinition';
 
 function makeMockedSchema({ mocks }) {
@@ -441,30 +433,28 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
 
     // cy.on("window:before:load", ...)
   }
-);
-`}
-        </Code>
+);`}
+        </CodeBlock>
         <Paragraph>
           This does allow us to define a different mock per test, but in every
           test we would have to also set any defaults that our schema
           required     —  for example setting a resolver for{" "}
-          <Code.Inline>DateTime</Code.Inline>:
+          <CodeInline>DateTime</CodeInline>:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`cy.mockGraphQLApi({
   DateTime: () => new Date().toISOString(),
   // ... specific content we want to mock for this test
-});
-`}
-        </Code>
+});`}
+        </CodeBlock>
         <Paragraph>
           Whilst merging objects in JS using the spread operator (or even{" "}
-          <Code.Inline>Object.assign</Code.Inline>) is fairly common, it won't
-          be sufficient in this case. Most graphQL schemas will require deeply
+          <CodeInline>Object.assign</CodeInline>) is fairly common, it won't be
+          sufficient in this case. Most graphQL schemas will require deeply
           nesting objects, and the nested values of those objects may be
           functions (resolvers) too:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`cy.mockGraphQLApi({
   DateTime: () => new Date().toISOString(),
   Account: () => ({
@@ -474,9 +464,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
       country: "New Zealand",
     }),
   }),
-});
-`}
-        </Code>
+});`}
+        </CodeBlock>
         <Paragraph>
           Both these caveats mean simple object merging will not be sufficient.
           Fortunately the{" "}
@@ -487,7 +476,7 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
           function which can be used to merge default mocks with test specific
           definitions.
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`function mergeResolvers(target, input) {
   const inputTypenames = Object.keys(input);
 
@@ -515,9 +504,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
     },
     { ...target }
   );
-}
-`}
-        </Code>
+}`}
+        </CodeBlock>
         <Paragraph>
           The original code for the merge resolvers function is{" "}
           <ExternalLink href="https://gist.github.com/hellendag/2aa9ad1f9b771f38802760c269bb1b76">
@@ -531,7 +519,7 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
           every time we mock the API), and mock definitions per test, then merge
           them in when we add mock functions to the schema:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`const defaultMocks = {
   DateTime: () => new Date(new Date()).toISOString(),
   Fraction: () => ({ numerator: 10, denominator: 45 }),
@@ -544,9 +532,8 @@ function makeMockedSchema({ mocks }) {
   return schema;
 }
 
-// Cypress.Commands.add("mockGraphQLApi", ...)
-`}
-        </Code>
+// Cypress.Commands.add("mockGraphQLApi", ...)`}
+        </CodeBlock>
         <Heading2>Mutations</Heading2>
         <Paragraph>
           So far we've exclusively looked at mock resolvers for entire types on
@@ -555,7 +542,7 @@ function makeMockedSchema({ mocks }) {
            we need to mock resolvers for the Mutation / Query types
           respectively:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`cy.mockGraphQLApi({
   Account: () => ({
     email: "mocked@gmail.com",
@@ -581,9 +568,8 @@ function makeMockedSchema({ mocks }) {
       }),
     }),
   }),
-});
-`}
-        </Code>
+});`}
+        </CodeBlock>
         <Paragraph>
           Take note of the capitalisation  —  in our case types (Account, Query,
           Mutation), are{" "}
@@ -604,7 +590,7 @@ function makeMockedSchema({ mocks }) {
           with) and for asserting that the mock is called with the correct
           arguments.
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`// For mutation definition:
 // \`mutation { updateAccount(email: "\${email}") { email } }\`
 
@@ -615,13 +601,12 @@ cy.mockGraphQLApi({
       // ...
     },
   });
-});
-`}
-        </Code>
+});`}
+        </CodeBlock>
         <Heading2>Piecing it all together</Heading2>x
         <Paragraph>
           Alongside our schema definition, we extract{" "}
-          <Code.Inline>makeMockedSchema</Code.Inline> into its own file. This
+          <CodeInline>makeMockedSchema</CodeInline> into its own file. This
           enables us to reuse the mock in both Cypress and unit tests. For our
           unit tests we followed{" "}
           <ExternalLink href="https://www.freecodecamp.org/news/a-new-approach-to-mocking-graphql-data-1ef49de3d491/">
@@ -629,7 +614,7 @@ cy.mockGraphQLApi({
           </ExternalLink>
           .
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`import {
   makeExecutableSchema,
   addMockFunctionsToSchema,
@@ -679,14 +664,13 @@ export default function makeMockedSchema({ mocks }) {
   addMockFunctionsToSchema({ schema, mocks: mergedMocks });
 
   return schema;
-}
-`}
-        </Code>
+}`}
+        </CodeBlock>
         <Paragraph>
-          We then use <Code.Inline>makeMockedSchema</Code.Inline> in a custom
+          We then use <CodeInline>makeMockedSchema</CodeInline> in a custom
           Cypress command:
         </Paragraph>
-        <Code>
+        <CodeBlock>
           {`import { graphql } from "graphql";
 import makeMockedSchema from "./makeMockedSchema";
 
@@ -718,9 +702,8 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
       cy.stub(win, "fetch").callsFake(fetch);
     });
   },
-);
-`}
-        </Code>
+);`}
+        </CodeBlock>
         <Paragraph>
           And that's it! I've seen some other implementations and attempts at
           sharing this functionality as a testing tool/library, but I've found
