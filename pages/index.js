@@ -96,6 +96,7 @@ Code.Inline = ({ children }) => (
     backgroundColor="gray.50"
     fontSize="sm"
     lineHeight="tall"
+    wordBreak="break-all"
     padding={1}
   >
     <code>{children}</code>

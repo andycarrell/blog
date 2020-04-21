@@ -5,7 +5,7 @@ class MyDocument extends Document {
     return (
       <Html>
         <Head />
-        <body style={{ overflowX: "hidden" }}>
+        <body style={{ overflowX: "hidden", margin: 0 }}>
           <Main />
           <NextScript />
         </body>

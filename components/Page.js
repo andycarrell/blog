@@ -33,10 +33,11 @@ const Header = () => (
   >
     <Flex
       direction="row"
+      wrap="wrap"
       align="center"
       width="100%"
       height="100%"
-      marginX={[3, 3, 5, 5]}
+      paddingX={[3, 3, 5, 5]}
     >
       <Text
         color="gray.50"
