@@ -23,17 +23,17 @@ export default function Index() {
           <Heading1>Mocking GraphQL in Cypress</Heading1>
         </Box>
         <Paragraph>
-          This is a detailed guide to mocking a graphQL API for{" "}
+          This is a detailed guide to mocking a GraphQL API for{" "}
           <ExternalLink href="https://www.cypress.io/">
             Cypress testing
           </ExternalLink>
-          . Our approach is by no means the only way to mock graphQL, but it has
+          . Our approach is by no means the only way to mock GraphQL, but it has
           been highly successful in our team, and I am keen to share how we
           achieved it.
         </Paragraph>
         <Paragraph>
           The intent for this guide is to be a comprehensive set of instructions
-          for how to get a mock graphQL API up and going in your Cypress tests 
+          for how to get a mock GraphQL API up and going in your Cypress tests 
           — if any instructions are lacking, incorrect, or don't work in your
           use case, please let me know. I'm open to feedback, and if you have a
           completely different way to do what we're doing, I'd love to hear it.
@@ -52,7 +52,7 @@ export default function Index() {
           <ExternalLink href="https://docs.cypress.io/api/commands/stub.html">
             Cypress stub functionality
           </ExternalLink>
-          , specifically for graphQL requests, and resolve against our mocked
+          , specifically for GraphQL requests, and resolve against our mocked
           schema.
         </Paragraph>
         <Paragraph>
@@ -90,7 +90,7 @@ export default function Index() {
         <Heading2>Copy your schema definition</Heading2>
         <Paragraph>
           Let's get started! The first thing to do is to get a copy of your
-          schema. Fortunately for us, our development graphQL server supports
+          schema. Fortunately for us, our development GraphQL server supports
           the "
           <ExternalLink href="https://github.com/prisma-labs/graphql-playground/">
             playground
@@ -116,7 +116,7 @@ export default function Index() {
 \``}
         </CodeBlock>
         <Paragraph>
-          We depend on a static definition of our schema for graphQL mocks. This
+          We depend on a static definition of our schema for GraphQL mocks. This
           means every time the schema changes, we have to copy the new
           definition into our project. So far we haven't found this to be a huge
           cost, since a changing schema often means queries or mutations require
@@ -258,7 +258,7 @@ addMockFunctionsToSchema({ schema, mocks });`}
           Even so, we've still written a number of custom Cypress commands
           extracting commands or sequences of commands where they are used
           frequently, relatively complicated, or where the commands don't
-          concisely represent the intention of a test. We mock graphQL in
+          concisely represent the intention of a test. We mock GraphQL in
           (almost) every test in this particular suite, so I think it's a really
           good candidate for a custom command.
         </Paragraph>
@@ -721,7 +721,7 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
           make their way to master.
         </Paragraph>
         <Paragraph>
-          In this guide, we've taken a look at how to mock a graphQL API in a
+          In this guide, we've taken a look at how to mock a GraphQL API in a
           deterministic and reusable way. At a high level, we followed these
           steps:
         </Paragraph>
