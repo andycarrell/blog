@@ -25,7 +25,7 @@ export default function Post1() {
         test our web applications. It gives us confidence to deploy frequently,
         safety when we refactor, and the ability develop features before the API
         is implemented. The first two benefits are "out of the box" when testing
-        with Cypress  —  by that I mean just by writing tests you can increase
+        with Cypress  —  by that I mean just by writing tests you increase
         confidence in deployments and refactors. To unlock developing features{" "}
         <Text as="i">independently of your backend</Text>, I am a firm believer
         that you need to{" "}
@@ -732,7 +732,7 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         Using this simple mocking utility has enabled us to write a large number
         of high fidelity tests that run completely independently of our backend
         servers. In turn, this encourages good test coverage of frontend
-        features - not only has this been a development productivity boost, but
+        features  — not only has this been a development productivity boost, but
         has caught countless bugs before they even make their way to master.
       </Paragraph>
       <Paragraph>
