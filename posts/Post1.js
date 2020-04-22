@@ -9,7 +9,7 @@ import {
   Paragraph,
   ExternalLink,
   UnorderedList,
-} from "../typography";
+} from "../components/typography";
 
 export default function Post1() {
   return (

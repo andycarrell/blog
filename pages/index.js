@@ -1,6 +1,6 @@
 import Page from "../components/Page";
-import Post1 from "../components/posts/Post1";
 import useTitle from "../hooks/useTitle";
+import Post1 from "../posts/Post1";
 
 export default function Index() {
   useTitle("andycarrell > Blog");
