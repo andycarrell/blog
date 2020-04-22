@@ -18,20 +18,45 @@ export default function Post1() {
         <Heading1>Mocking GraphQL in Cypress</Heading1>
       </Box>
       <Paragraph>
-        This is a detailed guide to mocking a GraphQL API for{" "}
-        <ExternalLink href="https://www.cypress.io/">
-          Cypress testing
+        The frontend team at{" "}
+        <ExternalLink href="https://www.jasper.io/">Jasper</ExternalLink> has
+        had huge success using{" "}
+        <ExternalLink href="https://www.cypress.io/">Cypress</ExternalLink> to
+        test our web applications. It gives us confidence to deploy frequently,
+        safety when we refactor, and the ability develop features before the API
+        is implemented. The first two benefits are "out of the box" when testing
+        with Cypress  —  by that I mean just by writing tests you can increase
+        confidence in deployments and refactors. To unlock developing features{" "}
+        <Text as="i">independently of your backend</Text>, I am a firm believer
+        that you need to{" "}
+        <ExternalLink href="https://devopedia.org/mock-testing">
+          mock the API
         </ExternalLink>
-        . Our approach is by no means the only way to mock GraphQL, but it has
-        been highly successful in our team, and I am keen to share how we
-        achieved it.
+        . Mocking also encourages writing more robust tests and covering a wider
+        range of user experiences.
       </Paragraph>
       <Paragraph>
-        The intent for this guide is to be a comprehensive set of instructions
-        for how to get a mock GraphQL API up and going in your Cypress tests  —
-        if any instructions are lacking, incorrect, or don't work in your use
-        case, please let me know. I'm open to feedback, and if you have a
-        completely different way to do what we're doing, I'd love to hear it.
+        Whilst Cypress has built-in{" "}
+        <ExternalLink href="https://docs.cypress.io/guides/guides/network-requests.html#Stubbing">
+          stub functionality for network requests
+        </ExternalLink>
+        , our approach provides more flexibility and resilience for your mocks,
+        and maintains the browser implementation of fetch. At the time of
+        writing,{" "}
+        <ExternalLink href="https://docs.cypress.io/guides/guides/network-requests.html#Testing-Strategies">
+          Cypress only supports intercepting{" "}
+          <CodeInline>XMLHttpRequests </CodeInline>
+        </ExternalLink>{" "}
+        —{" "}
+        <ExternalLink href="https://github.com/cypress-io/cypress/issues/95">
+          this Github issue
+        </ExternalLink>
+          tracks more details and temporary workarounds.
+      </Paragraph>
+      <Paragraph>
+        Our approach is by no means the only way to mock GraphQL, but it has
+        been highly successful in our team, and I am keen to share how we
+        achieved it.
       </Paragraph>
       <Heading2>Overview</Heading2>
       <Paragraph>
@@ -707,11 +732,11 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         Using this simple mocking utility has enabled us to write a large number
         of high fidelity tests that run completely independently of our backend
         servers. In turn, this encourages good test coverage of frontend
-        features  —  not only has this been a development productivity boost,
-        but has caught countless bugs before they even make their way to master.
+        features - not only has this been a development productivity boost, but
+        has caught countless bugs before they even make their way to master.
       </Paragraph>
       <Paragraph>
-        In this guide, we've taken a look at how to mock a GraphQL API in a
+        In this guide, we've taken a look at how to mock a graphQL API in a
         deterministic and reusable way. At a high level, we followed these
         steps:
       </Paragraph>
@@ -725,13 +750,17 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         </UnorderedList.Item>
       </UnorderedList>
       <Paragraph>
-        My intent is to share this method, so other teams can realise the same
-        benefits we have. At each step I've explained what we did and why, but I
+        My intent is to share our method with a comprehensive set of
+        instructions, so other teams can realise the same benefits we have.
+        Following this guide should get a mock GraphQL API up and going in your
+        Cypress tests. At each step I've explained what we did and why, but I
         appreciate information might be lacking  —  if so{" "}
         <ExternalLink href="https://twitter.com/andy__carrell">
           please reach out
         </ExternalLink>{" "}
-        and I can attempt to clarify.
+        and I can attempt to clarify. I'm open to feedback, and if you have a
+        completely different way to do what we're doing, I'd love to hear that
+        too.
       </Paragraph>
     </Stack>
   );
