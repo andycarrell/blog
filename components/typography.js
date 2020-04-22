@@ -87,7 +87,13 @@ export const CodeBlock = ({ children, ...rest }) => {
       borderRadius="md"
       padding={4}
     >
-      <Text whiteSpace="pre" fontSize="sm" lineHeight="tall" overflowX="scroll">
+      <Text
+        as="div"
+        whiteSpace="pre"
+        fontSize="sm"
+        lineHeight="tall"
+        overflowX="scroll"
+      >
         <code>
           <CodeHighlighter>{children}</CodeHighlighter>
         </code>
