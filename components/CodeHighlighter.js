@@ -1,10 +1,21 @@
 import Highlight, { defaultProps } from "prism-react-renderer";
 import defaultTheme from "prism-react-renderer/themes/nightOwlLight";
+import prettier from "prettier/standalone";
+import prettierParserBabel from "prettier/parser-babel";
 
 const theme = {
   ...defaultTheme,
   plain: { ...defaultTheme.plain, backgroundColor: "transparent" },
 };
+
+const formatCode = (str) =>
+  prettier
+    .format(str, {
+      printWidth: 75,
+      parser: "babel",
+      plugins: [prettierParserBabel],
+    })
+    .trim();
 
 const LineNumber = ({ children }) => (
   <span
@@ -30,7 +41,7 @@ export default function CodeHighlighter({ children }) {
       {...defaultProps}
       theme={theme}
       language="javascript"
-      code={children}
+      code={formatCode(children)}
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
         <div className={className} style={style}>

@@ -122,18 +122,15 @@ export default function Post1() {
       </Box>
       <Paragraph>
         Copy the definition into a file that can be imported as a plain string.
-        We chose a plain JS file using string literals, because the JS
-        definition looks as close to the copied output as possible.
+        We chose a plain JS file using a{" "}
+        <ExternalLink href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">
+          template literal string
+        </ExternalLink>
+        , because the JS definition looks as close to the copied output as
+        possible.
       </Paragraph>
       <CodeBlock>
-        {`export default \`
-  type Account {
-    id: ID!
-    email: String!
-    firstName: String!
-    lastName: String!
-  }
-\``}
+        {`export default \`\n\ttype Account {\n\t\tid: ID!\n\t\temail: String!\n\t\tfirstName: String!\n\t\tlastName: String!\n\t}\n\`;`}
       </CodeBlock>
       <Paragraph>
         We depend on a static definition of our schema for GraphQL mocks. This
@@ -156,17 +153,14 @@ export default function Post1() {
         .
       </Paragraph>
       <CodeBlock>
-        {`import {
-  makeExecutableSchema,
-  addMockFunctionsToSchema,
-} from 'graphql-tools';
-
-import schemaString from './schemaDefinition';
-
-// Make a GraphQL schema with no resolvers
-const schema = makeExecutableSchema({ typeDefs: schemaString });
-// Add mocks, modifies schema in place
-addMockFunctionsToSchema({ schema });`}
+        {`
+          import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
+          import schemaString from './schemaDefinition';\n
+          // Make a GraphQL schema with no resolvers
+          const schema = makeExecutableSchema({ typeDefs: schemaString });
+          // Add mocks, modifies schema in place
+          addMockFunctionsToSchema({ schema });
+        `}
       </CodeBlock>
       <Paragraph>
         We will define specific mock resolvers later, but for now the minimum
@@ -179,14 +173,15 @@ addMockFunctionsToSchema({ schema });`}
           — so we define a 'resolver', which returns a mock value:
       </Paragraph>
       <CodeBlock>
-        {`// Add mocks, modifies schema in place
-const mocks = {
-  // Schema definition: 'scalar DateTime'
-  // Also note the type - function that returns a primitive
-  DateTime: () => new Date().toISOString(),
-};
-
-addMockFunctionsToSchema({ schema, mocks });`}
+        {`
+          // Add mocks, modifies schema in place
+          const mocks = {
+            // Schema definition: 'scalar DateTime'
+            // Also note the type - function that returns a primitive
+            DateTime: () => new Date().toISOString(),
+          };\n
+          addMockFunctionsToSchema({ schema, mocks });
+        `}
       </CodeBlock>
       <Paragraph>
         To explain what these initial steps achieve (
@@ -249,28 +244,28 @@ addMockFunctionsToSchema({ schema, mocks });`}
       </Paragraph>
       <Paragraph>The end usage of the custom command looks like:</Paragraph>
       <CodeBlock>
-        {`describe("Test - Accounts", () => {
-  it("should show an error when searching accounts", () => {
-    cy.mockGraphQLApi({
-      // Every instance of type Account will return:
-      Account: () => ({
-        email: "mocked@gmail.com",
-        firstName: "Katherine",
-        lastName: "French",
-      }),
-      // We can make queries fail by throwing an error
-      Query: () => ({
-        searchAccounts: () => {
-          throw new Error("InternalServerError");
-        },
-      }),
-    });
-
-    cy.visit("/accounts");
-
-    // Expect error state ...
-  });
-});`}
+        {`
+          describe("Test - Accounts", () => {
+            it("should show an error when searching accounts", () => {
+              cy.mockGraphQLApi({
+                // Every instance of type Account will return:
+                Account: () => ({
+                  email: "mocked@gmail.com",
+                  firstName: "Katherine",
+                  lastName: "French",
+                }),
+                // We can make queries fail by throwing an error
+                Query: () => ({
+                  searchAccounts: () => {
+                    throw new Error("InternalServerError");
+                  },
+                }),
+              });\n
+              cy.visit("/accounts");\n
+              // Expect error state ...
+            });
+          });
+        `}
       </CodeBlock>
       <Paragraph>
         As an aside   —   I generally prefer repetition in tests because the
@@ -291,43 +286,42 @@ addMockFunctionsToSchema({ schema, mocks });`}
         :
       </Paragraph>
       <CodeBlock>
-        {`import { graphql } from "graphql";
-
-// Make a GraphQL schema with no resolvers
-// ...
-
-graphql(schema, query).then((result) => {
-  console.log('Got result', result);
-});`}
+        {`
+          import { graphql } from "graphql";\n
+          // Make a GraphQL schema with no resolvers
+          // ...\n
+          graphql(schema, query).then((result) => {
+            console.log('Got result', result);
+          });
+        `}
       </CodeBlock>
       <Paragraph>
         We can use this function in place of where we would otherwise call our
         API:
       </Paragraph>
       <CodeBlock>
-        {`import { graphql } from "graphql";
-
-// Make a GraphQL schema with no resolvers
-const resolve = result => ({
-  json: () => Promise.resolve(result),
-  text: () => Promise.resolve(JSON.stringify(result)),
-  ok: true,
-});
-
-Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
-  () => {
-    // Changes the window object before load
-    // Call cy.mockGraphQLApi(...) before visiting the page
-    cy.on("window:before:load", win => {
-      function fetch(_, { body }) {
-        const { query } = JSON.parse(body);
-        return graphql(schema, query).then(resolve);
-      }
-
-      cy.stub(win, "fetch").callsFake(fetch);
-    });
-  }
-);`}
+        {`
+          import { graphql } from "graphql";\n
+          // Make a GraphQL schema with no resolvers ...\n
+          const resolve = result => ({
+            json: () => Promise.resolve(result),
+            text: () => Promise.resolve(JSON.stringify(result)),
+            ok: true,
+          });\n
+          Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
+            () => {
+              // Changes the window object before load
+              // Call cy.mockGraphQLApi(...) before visiting the page
+              cy.on("window:before:load", win => {
+                function fetch(_, { body }) {
+                  const { query } = JSON.parse(body);
+                  return graphql(schema, query).then(resolve);
+                }\n
+                cy.stub(win, "fetch").callsFake(fetch);
+              });
+            }
+          );
+        `}
       </CodeBlock>
       <Paragraph>
         This may work as is, but for us there were other parts of the app that
@@ -336,36 +330,32 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         when the URL matches our API URL:
       </Paragraph>
       <CodeBlock>
-        {`import { graphql } from "graphql";
-
-// Make a GraphQL schema with no resolvers
-
-// const resolve = ...
-
-function fetchMock(_, { body }) {
-  const { query } = JSON.parse(body);
-  return graphql(schema, query).then(resolve);
-}
-
-Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
-  () => {
-    // Your API's url - we use Cypress environment variables
-    const queryUrl =
-      \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;
-
-    cy.on("window:before:load", win => {
-      // To debug here: const log = win.console.log
-      const originalFetch = win.fetch;
-      function fetch(url, ...rest) {
-        if (url === queryUrl) {
-          return fetchMock(url, ...rest);
-        }
-        return originalFetch(url, ...rest);
-      }
-      cy.stub(win, "fetch").callsFake(fetch);
-    });
-  }
-);`}
+        {`
+          import { graphql } from "graphql";\n
+          // Make a GraphQL schema with no resolvers ...
+          // const resolve = ...\n
+          function fetchMock(_, { body }) {
+            const { query } = JSON.parse(body);
+            return graphql(schema, query).then(resolve);
+          }\n
+          Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
+            () => {
+              // Your API's url - we use Cypress environment variables
+              const queryUrl = \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;\n
+              cy.on("window:before:load", win => {
+                // To debug here: const log = win.console.log
+                const originalFetch = win.fetch;
+                function fetch(url, ...rest) {
+                  if (url === queryUrl) {
+                    return fetchMock(url, ...rest);
+                  }
+                  return originalFetch(url, ...rest);
+                }
+                cy.stub(win, "fetch").callsFake(fetch);
+              });
+            }
+          );
+        `}
       </CodeBlock>
       <Heading2>Changing mocks between tests</Heading2>
       <Paragraph>
@@ -387,14 +377,14 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         passed as the 5th argument to <CodeInline>graphql</CodeInline>.
       </Paragraph>
       <CodeBlock>
-        {`// const resolve = ...
-
-const fetchMock = (_, { body }) => {
-  const { query, variables } = JSON.parse(body);
-  return graphql(schema, query, {}, {}, variables).then(resolve);
-};
-
-// Cypress.Commands.add("mockGraphQLApi", ...)`}
+        {`
+          // const resolve = ...\n
+          const fetchMock = (_, { body }) => {
+            const { query, variables } = JSON.parse(body);
+            return graphql(schema, query, {}, {}, variables).then(resolve);
+          };\n
+          // Cypress.Commands.add("mockGraphQLApi", ...)
+        `}
       </CodeBlock>
       <Paragraph>
         The next step is to merge default resolvers (which we've already
@@ -415,12 +405,13 @@ const fetchMock = (_, { body }) => {
         We initially defined our mocks where we made the schema executable:
       </Paragraph>
       <CodeBlock>
-        {`// Completely static
-const mocks = {
-  // ...
-};
-
-addMockFunctionsToSchema({ schema, mocks });`}
+        {`
+          // Completely static
+          const mocks = {
+            // ...
+          };\n
+          addMockFunctionsToSchema({ schema, mocks });
+        `}
       </CodeBlock>
       <Paragraph>
         Defining the mocks once is a big limitation    —   we really want to be
@@ -429,30 +420,27 @@ addMockFunctionsToSchema({ schema, mocks });`}
         schema dynamically each time we call the custom Cypress command:
       </Paragraph>
       <CodeBlock>
-        {`import schemaString from './schemaDefinition';
-
-function makeMockedSchema({ mocks }) {
-  const schema = makeExecutableSchema({ typeDefs: schemaString });
-  addMockFunctionsToSchema({ schema, mocks });
-  return schema;
-}
-
-Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
-  (mocks = {}) => {
-    const schema = makeMockedSchema({ mocks });
-    const queryUrl =
-      \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;
-
-    function fetchMock(_, { body }) {
-      const { query, variables } = JSON.parse(body);
-      return graphql(
-        schema, query, {}, {}, variables,
-      ).then(resolve);
-    }
-
-    // cy.on("window:before:load", ...)
-  }
-);`}
+        {`
+          import schemaString from './schemaDefinition';\n
+          function makeMockedSchema({ mocks }) {
+            const schema = makeExecutableSchema({ typeDefs: schemaString });
+            addMockFunctionsToSchema({ schema, mocks });
+            return schema;
+          }\n
+          Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
+            (mocks = {}) => {
+              const schema = makeMockedSchema({ mocks });
+              const queryUrl = \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;\n
+              function fetchMock(_, { body }) {
+                const { query, variables } = JSON.parse(body);
+                return graphql(
+                  schema, query, {}, {}, variables,
+                ).then(resolve);
+              }\n
+              // cy.on("window:before:load", ...)
+            }
+          );
+        `}
       </CodeBlock>
       <Paragraph>
         This does allow us to define a different mock per test, but in every
@@ -460,10 +448,12 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         —  for example setting a resolver for <CodeInline>DateTime</CodeInline>:
       </Paragraph>
       <CodeBlock>
-        {`cy.mockGraphQLApi({
-  DateTime: () => new Date().toISOString(),
-  // ... specific content we want to mock for this test
-});`}
+        {`
+          cy.mockGraphQLApi({
+            DateTime: () => new Date().toISOString(),
+            // ... specific content we want to mock for this test
+          });
+        `}
       </CodeBlock>
       <Paragraph>
         Whilst merging objects in JS using the spread operator (or even{" "}
@@ -473,16 +463,18 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         (resolvers) too:
       </Paragraph>
       <CodeBlock>
-        {`cy.mockGraphQLApi({
-  DateTime: () => new Date().toISOString(),
-  Account: () => ({
-    email: "mocked@gmail.com",
-    address: () => ({
-      city: "Auckland",
-      country: "New Zealand",
-    }),
-  }),
-});`}
+        {`
+          cy.mockGraphQLApi({
+            DateTime: () => new Date().toISOString(),
+            Account: () => ({
+              email: "mocked@gmail.com",
+              address: () => ({
+                city: "Auckland",
+                country: "New Zealand",
+              }),
+            }),
+          });
+        `}
       </CodeBlock>
       <Paragraph>
         Both these caveats mean simple object merging will not be sufficient.
@@ -494,34 +486,34 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         which can be used to merge default mocks with test specific definitions.
       </Paragraph>
       <CodeBlock>
-        {`function mergeResolvers(target, input) {
-  const inputTypenames = Object.keys(input);
-
-  return inputTypenames.reduce(
-    (accum, key) => {
-      const inputResolver = input[key];
-      if (key in target) {
-        const targetResolver = target[key];
-        const resolvedInput = inputResolver();
-        const resolvedTarget = targetResolver();
-
-        if (
-          !!resolvedTarget &&
-          !!resolvedInput &&
-          typeof resolvedTarget === "object" &&
-          typeof resolvedInput === "object" &&
-          !Array.isArray(resolvedTarget) &&
-          !Array.isArray(resolvedInput)
-        ) {
-          const newValue = { ...resolvedTarget, ...resolvedInput };
-          return { ...accum, [key]: () => newValue };
-        }
-      }
-      return { ...accum, [key]: inputResolver };
-    },
-    { ...target }
-  );
-}`}
+        {`
+          function mergeResolvers(target, input) {
+            const inputTypenames = Object.keys(input);\n
+            return inputTypenames.reduce(
+              (accum, key) => {
+                const inputResolver = input[key];
+                if (key in target) {
+                  const targetResolver = target[key];
+                  const resolvedInput = inputResolver();
+                  const resolvedTarget = targetResolver();\n
+                  if (
+                    !!resolvedTarget &&
+                    !!resolvedInput &&
+                    typeof resolvedTarget === "object" &&
+                    typeof resolvedInput === "object" &&
+                    !Array.isArray(resolvedTarget) &&
+                    !Array.isArray(resolvedInput)
+                  ) {
+                    const newValue = { ...resolvedTarget, ...resolvedInput };
+                    return { ...accum, [key]: () => newValue };
+                  }
+                }
+                return { ...accum, [key]: inputResolver };
+              },
+              { ...target }
+            );
+          }
+        `}
       </CodeBlock>
       <Paragraph>
         The original code for the merge resolvers function is{" "}
@@ -537,19 +529,19 @@ Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
         them in when we add mock functions to the schema:
       </Paragraph>
       <CodeBlock>
-        {`const defaultMocks = {
-  DateTime: () => new Date(new Date()).toISOString(),
-  Fraction: () => ({ numerator: 10, denominator: 45 }),
-};
-
-function makeMockedSchema({ mocks }) {
-  const schema = makeExecutableSchema({ typeDefs: schemaString });
-  const mergedMocks = mergeResolvers(defaultMocks, mocks);
-  addMockFunctionsToSchema({ schema, mocks: mergedMocks });
-  return schema;
-}
-
-// Cypress.Commands.add("mockGraphQLApi", ...)`}
+        {`
+          const defaultMocks = {
+            DateTime: () => new Date(new Date()).toISOString(),
+            Fraction: () => ({ numerator: 10, denominator: 45 }),
+          };\n
+          function makeMockedSchema({ mocks }) {
+            const schema = makeExecutableSchema({ typeDefs: schemaString });
+            const mergedMocks = mergeResolvers(defaultMocks, mocks);
+            addMockFunctionsToSchema({ schema, mocks: mergedMocks });
+            return schema;
+          }\n
+          // Cypress.Commands.add("mockGraphQLApi", ...)
+        `}
       </CodeBlock>
       <Heading2>Mutations</Heading2>
       <Paragraph>
@@ -559,32 +551,34 @@ function makeMockedSchema({ mocks }) {
         need to mock resolvers for the Mutation / Query types respectively:
       </Paragraph>
       <CodeBlock>
-        {`cy.mockGraphQLApi({
-  Account: () => ({
-    email: "mocked@gmail.com",
-    address: () => ({
-      city: "Auckland",
-      country: "New Zealand",
-    }),
-  }),
-  Query: () => ({
-    searchAccounts: () => [{
-      email: "faked@gmail.com",
-      address: () => ({
-        city: "Wellington",
-        country: "New Zealand",
-      }),
-    }],
-  }),
-  Mutation: () => ({
-    updateAccount: () => ({
-      address: () => ({
-        city: "Sydney",
-        country: "Australia",
-      }),
-    }),
-  }),
-});`}
+        {`
+          cy.mockGraphQLApi({
+            Account: () => ({
+              email: "mocked@gmail.com",
+              address: () => ({
+                city: "Auckland",
+                country: "New Zealand",
+              }),
+            }),
+            Query: () => ({
+              searchAccounts: () => [{
+                email: "faked@gmail.com",
+                address: () => ({
+                  city: "Wellington",
+                  country: "New Zealand",
+                }),
+              }],
+            }),
+            Mutation: () => ({
+              updateAccount: () => ({
+                address: () => ({
+                  city: "Sydney",
+                  country: "Australia",
+                }),
+              }),
+            }),
+          });
+        `}
       </CodeBlock>
       <Paragraph>
         Take note of the capitalisation  —  in our case types (Account, Query,
@@ -607,17 +601,18 @@ function makeMockedSchema({ mocks }) {
         arguments.
       </Paragraph>
       <CodeBlock>
-        {`// For mutation definition:
-// \`mutation { updateAccount(email: "\${email}") { email } }\`
-
-cy.mockGraphQLApi({
-  Mutation: () => ({
-    updateAccount: (_, { email }) => {
-      console.log(email);
-      // ...
-    },
-  }),
-});`}
+        {`
+          // For mutation definition:
+          // \`mutation { updateAccount(email: "\${email}") { email } }\`\n
+          cy.mockGraphQLApi({
+            Mutation: () => ({
+              updateAccount: (_, { email }) => {
+                console.log(email);
+                // ...
+              },
+            }),
+          });
+        `}
       </CodeBlock>
       <Heading2>Piecing it all together</Heading2>x
       <Paragraph>
@@ -631,94 +626,83 @@ cy.mockGraphQLApi({
         .
       </Paragraph>
       <CodeBlock>
-        {`import {
-  makeExecutableSchema,
-  addMockFunctionsToSchema,
-} from "graphql-tools";
-// This is the schema string
-import schemaDefinition from "./schemaDefinition";
-
-function mergeResolvers(target, input) {
-  const inputTypenames = Object.keys(input);
-
-  return inputTypenames.reduce(
-    (accum, key) => {
-      const inputResolver = input[key];
-      if (key in target) {
-        const targetResolver = target[key];
-        const resolvedInput = inputResolver();
-        const resolvedTarget = targetResolver();
-
-        if (
-          !!resolvedTarget &&
-          !!resolvedInput &&
-          typeof resolvedTarget === "object" &&
-          typeof resolvedInput === "object" &&
-          !Array.isArray(resolvedTarget) &&
-          !Array.isArray(resolvedInput)
-        ) {
-          const newValue = { ...resolvedTarget, ...resolvedInput };
-          return { ...accum, [key]: () => newValue };
-        }
-      }
-      return { ...accum, [key]: inputResolver };
-    },
-    { ...target }
-  );
-}
-
-const defaultMocks = {
-  DateTime: () => new Date(new Date()).toISOString(),
-  Fraction: () => ({ numerator: 10, denominator: 45 }),
-};
-
-export default function makeMockedSchema({ mocks }) {
-  const mergedMocks = mergeResolvers(defaultMocks, mocks);
-  const schema = makeExecutableSchema({
-    typeDefs: schemaDefinition,
-  });
-  addMockFunctionsToSchema({ schema, mocks: mergedMocks });
-
-  return schema;
-}`}
+        {`
+          import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
+          // This is the schema string
+          import schemaDefinition from "./schemaDefinition";\n
+          function mergeResolvers(target, input) {
+            const inputTypenames = Object.keys(input);\n
+            return inputTypenames.reduce(
+              (accum, key) => {
+                const inputResolver = input[key];
+                if (key in target) {
+                  const targetResolver = target[key];
+                  const resolvedInput = inputResolver();
+                  const resolvedTarget = targetResolver();\n
+                  if (
+                    !!resolvedTarget &&
+                    !!resolvedInput &&
+                    typeof resolvedTarget === "object" &&
+                    typeof resolvedInput === "object" &&
+                    !Array.isArray(resolvedTarget) &&
+                    !Array.isArray(resolvedInput)
+                  ) {
+                    const newValue = { ...resolvedTarget, ...resolvedInput };
+                    return { ...accum, [key]: () => newValue };
+                  }
+                }
+                return { ...accum, [key]: inputResolver };
+              },
+              { ...target }
+            );
+          }\n
+          const defaultMocks = {
+            DateTime: () => new Date(new Date()).toISOString(),
+            Fraction: () => ({ numerator: 10, denominator: 45 }),
+          };\n
+          export default function makeMockedSchema({ mocks }) {
+            const mergedMocks = mergeResolvers(defaultMocks, mocks);
+            const schema = makeExecutableSchema({ typeDefs: schemaDefinition });
+            addMockFunctionsToSchema({ schema, mocks: mergedMocks });\n
+            return schema;
+          }
+        `}
       </CodeBlock>
       <Paragraph>
         We then use <CodeInline>makeMockedSchema</CodeInline> in a custom
         Cypress command:
       </Paragraph>
       <CodeBlock>
-        {`import { graphql } from "graphql";
-import makeMockedSchema from "./makeMockedSchema";
-
-const resolve = result => ({
-  json: () => Promise.resolve(result),
-  text: () => Promise.resolve(JSON.stringify(result)),
-  ok: true,
-});
-
-Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
-  (mocks = {}) => {
-    const queryUrl =
-      \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;
-    const schema = makeMockedSchema({ mocks });
-    const fetchMock = (_, { body }) => {
-      const { query, variables } = JSON.parse(body);
-      return graphql(schema, query, {}, {}, variables)
-        .then(resolve);
-    };
-
-    cy.on("window:before:load", win => {
-      const originalFetch = win.fetch;
-      function fetch(url, ...rest) {
-        if (url === queryUrl) {
-          return fetchMock(url, ...rest);
-        }
-        return originalFetch(url, ...rest);
-      }
-      cy.stub(win, "fetch").callsFake(fetch);
-    });
-  },
-);`}
+        {`
+          import { graphql } from "graphql";
+          import makeMockedSchema from "./makeMockedSchema";\n
+          const resolve = result => ({
+            json: () => Promise.resolve(result),
+            text: () => Promise.resolve(JSON.stringify(result)),
+            ok: true,
+          });\n
+          Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
+            (mocks = {}) => {
+              const queryUrl = \`https://\${Cypress.env("API_SERVICE_DOMAIN")}/query\`;
+              const schema = makeMockedSchema({ mocks });
+              const fetchMock = (_, { body }) => {
+                const { query, variables } = JSON.parse(body);
+                return graphql(schema, query, {}, {}, variables)
+                  .then(resolve);
+              };\n
+              cy.on("window:before:load", win => {
+                const originalFetch = win.fetch;
+                function fetch(url, ...rest) {
+                  if (url === queryUrl) {
+                    return fetchMock(url, ...rest);
+                  }
+                  return originalFetch(url, ...rest);
+                }
+                cy.stub(win, "fetch").callsFake(fetch);
+              });
+            },
+          );
+        `}
       </CodeBlock>
       <Paragraph>
         And that's it! I've seen some other implementations and attempts at
