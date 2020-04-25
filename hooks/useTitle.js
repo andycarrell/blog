@@ -1,4 +1,4 @@
-import { useEffect, Fragment } from "react";
+import { useEffect } from "react";
 
 export default function useTitle(title) {
   useEffect(() => {

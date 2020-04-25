@@ -1,4 +1,3 @@
-import { Box, Text } from "@chakra-ui/core";
 import Highlight, { defaultProps } from "prism-react-renderer";
 import defaultTheme from "prism-react-renderer/themes/nightOwlLight";
 
@@ -8,20 +7,21 @@ const theme = {
 };
 
 const LineNumber = ({ children }) => (
-  <Box
-    display="inline-block"
-    position="sticky"
-    left="0"
-    width="20px"
-    backgroundColor="gray.50"
-    boxShadow="0 0 4px 2px #F7FAFC"
-    marginBottom="1px"
-    marginRight={1}
+  <span
+    style={{
+      display: "inline-block",
+      position: "sticky",
+      left: "0",
+      width: "20px",
+      backgroundColor: "#F7FAFC",
+      boxShadow: "0 0 4px 2px #F7FAFC",
+      marginRight: "2px",
+    }}
   >
-    <Text as="span" fontSize="sm" userSelect="none" opacity="0.3">
+    <span style={{ fontSize: "14px", userSelect: "none", opacity: 0.3 }}>
       {children}
-    </Text>
-  </Box>
+    </span>
+  </span>
 );
 
 export default function CodeHighlighter({ children }) {
