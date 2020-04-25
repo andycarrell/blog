@@ -18,11 +18,9 @@
     "@emotion/styled": "10.0.27",
     "emotion-theming": "10.0.27",
     "next": "9.3.5",
+    "prettier": "2.0.4",
     "prism-react-renderer": "1.0.2",
     "react": "16.13.1",
     "react-dom": "16.13.1"
-  },
-  "devDependencies": {
-    "prettier": "2.0.4"
   }
 }
