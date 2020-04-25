@@ -184,7 +184,7 @@ const mocks = {
   // Schema definition: 'scalar DateTime'
   // Also note the type - function that returns a primitive
   DateTime: () => new Date().toISOString(),
-}
+};
 
 addMockFunctionsToSchema({ schema, mocks });`}
       </CodeBlock>
@@ -616,7 +616,7 @@ cy.mockGraphQLApi({
       console.log(email);
       // ...
     },
-  });
+  }),
 });`}
       </CodeBlock>
       <Heading2>Piecing it all together</Heading2>x
