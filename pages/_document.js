@@ -4,7 +4,12 @@ class MyDocument extends Document {
   render() {
     return (
       <Html>
-        <Head />
+        <Head>
+          <link
+            href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@700&family=Inter&display=swap"
+            rel="stylesheet"
+          />
+        </Head>
         <body style={{ overflowX: "hidden", margin: 0 }}>
           <Main />
           <NextScript />
