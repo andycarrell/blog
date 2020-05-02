@@ -1,18 +1,12 @@
-import {
-  Box,
-  Text,
-  Flex,
-  Icon,
-  ThemeProvider,
-  CSSReset,
-  theme,
-} from "@chakra-ui/core";
+import { Box, Text, Flex, Icon } from "@chakra-ui/core";
+
+import Chakra from "./Chakra";
 
 const Layout = ({ children }) => (
   <Box
     maxWidth={["100%", "100%", "560px", "720px"]}
     marginX="auto"
-    paddingX={2}
+    paddingX={[2, 2, 0, 0]}
     paddingTop={[4, 4, 6, 6]}
     paddingBottom={[24, 24, 32, 32]}
   >
@@ -55,10 +49,9 @@ const Header = () => (
 
 export default function Page({ children }) {
   return (
-    <ThemeProvider theme={theme}>
-      <CSSReset />
+    <Chakra>
       <Header />
       <Layout>{children}</Layout>
-    </ThemeProvider>
+    </Chakra>
   );
 }
