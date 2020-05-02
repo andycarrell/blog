@@ -25,7 +25,7 @@ export const Heading1 = ({ children, ...rest }) => (
     fontWeight="medium"
     fontFamily="heading"
     fontSize={["4xl", "4xl", "5xl", "5xl"]}
-    color="gray.700"
+    color="gray.600"
     as="h1"
   >
     {children}
@@ -39,7 +39,7 @@ export const Heading2 = ({ children, ...rest }) => (
     fontWeight="medium"
     fontFamily="heading"
     fontSize={["2xl", "2xl", "3xl", "3xl"]}
-    color="gray.600"
+    color="gray.500"
     as="h2"
   >
     {children}
