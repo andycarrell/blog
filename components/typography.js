@@ -18,6 +18,7 @@ export const ExternalLink = ({ children, href, ...rest }) => (
 
 export const Heading1 = ({ children, ...rest }) => (
   <Text
+    marginTop={[2, 2, 3, 3]}
     {...rest}
     textAlign="center"
     mx="auto"
@@ -33,6 +34,7 @@ export const Heading1 = ({ children, ...rest }) => (
 
 export const Heading2 = ({ children, ...rest }) => (
   <Text
+    marginTop={[2, 2, 3, 3]}
     {...rest}
     fontWeight="medium"
     fontFamily="heading"
