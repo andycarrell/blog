@@ -2,11 +2,10 @@ import Error from "next/error";
 import { useRouter } from "next/router";
 
 import Page from "../../components/Page";
-import useTitle from "../../hooks/useTitle";
 import Post1 from "../../posts/Post1";
 
 const postFor = {
-  "mocking-graphql-in-cypress": [Post1, "Mocking GraphQL in Cypress"],
+  "mocking-graphql-in-cypress": Post1,
 };
 
 export function getStaticPaths() {
@@ -22,9 +21,7 @@ export function getStaticProps() {
 
 export default function Index() {
   const { query } = useRouter();
-  const [Post, title] = postFor[query.slug];
-
-  useTitle(`andycarrell > ${title || "Blog"}`);
+  const Post = postFor[query.slug];
 
   if (Post) {
     return (

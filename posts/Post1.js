@@ -1,4 +1,5 @@
 import { Box, Text, Stack } from "@chakra-ui/core";
+import Head from "next/head";
 
 import {
   CodeBlock,
@@ -14,6 +15,14 @@ import {
 export default function Post1() {
   return (
     <Stack>
+      <Head>
+        <title>andycarrell > Mocking GraphQL in Cypress</title>
+        <meta
+          content="The frontend team at Jasper has had huge success using Cypress to test our web applications. It gives us confidence to deploy frequently, safety when we refactor, and the ability develop features before the API is implemented. Following this guide should get a mock GraphQL API up and going in your Cypress tests, I've carefully explained what we did at each step and why."
+          name="description"
+          key="description"
+        />
+      </Head>
       <Box marginY={[5, 5, 6, 8]}>
         <Heading1>Mocking GraphQL in Cypress</Heading1>
       </Box>
