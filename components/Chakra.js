@@ -8,7 +8,7 @@ const theme = {
   ...defaultTheme,
   fonts: {
     body: `Inter, ${defaultTheme.fonts.body}`,
-    heading: `'Noto Serif', ${defaultTheme.fonts.heading}`,
+    heading: `Inter, ${defaultTheme.fonts.heading}`,
     mono: `${defaultTheme.fonts.mono}`,
   },
 };

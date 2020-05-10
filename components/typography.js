@@ -22,8 +22,8 @@ export const Heading1 = ({ children, ...rest }) => (
     {...rest}
     textAlign="center"
     mx="auto"
-    fontWeight="medium"
     fontFamily="heading"
+    fontWeight="semibold"
     fontSize={["4xl", "4xl", "5xl", "5xl"]}
     color="gray.600"
     as="h1"
@@ -36,8 +36,8 @@ export const Heading2 = ({ children, ...rest }) => (
   <Text
     marginTop={[2, 2, 3, 3]}
     {...rest}
-    fontWeight="medium"
     fontFamily="heading"
+    fontWeight="medium"
     fontSize={["2xl", "2xl", "3xl", "3xl"]}
     color="gray.500"
     as="h2"
