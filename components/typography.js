@@ -11,7 +11,7 @@ import {
 import CodeHighlighter from "./CodeHighlighter";
 
 export const ExternalLink = ({ children, href, ...rest }) => (
-  <Link {...rest} href={href} color="cyan.700" isExternal>
+  <Link {...rest} href={href} color="cyan.800" isExternal>
     {children}
   </Link>
 );
@@ -47,7 +47,7 @@ export const Heading2 = ({ children, ...rest }) => (
 );
 
 export const Paragraph = ({ children, ...rest }) => (
-  <Text {...rest} as="p" lineHeight="tall">
+  <Text {...rest} as="p" lineHeight="tall" fontSize="lg">
     {children}
   </Text>
 );
