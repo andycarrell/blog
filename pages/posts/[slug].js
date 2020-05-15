@@ -1,9 +1,9 @@
 import Error from "next/error";
 import { useRouter } from "next/router";
-import Post1 from "posts/Post1";
+import Post1, { SEO } from "posts/Post1";
 
 const postFor = {
-  "mocking-graphql-in-cypress": Post1,
+  "mocking-graphql-in-cypress": [Post1, SEO],
 };
 
 export function getStaticPaths() {
@@ -19,10 +19,15 @@ export function getStaticProps() {
 
 export default function Index() {
   const { query } = useRouter();
-  const Post = postFor[query.slug];
+  const [Post, SEO] = postFor[query.slug];
 
   if (Post) {
-    return <Post />;
+    return (
+      <>
+        <SEO />
+        <Post />
+      </>
+    );
   }
 
   return <Error statusCode={404} />;
