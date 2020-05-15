@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import App from "next/app";
 import Head from "next/head";
 import Chakra from "components/Chakra";
@@ -9,7 +8,7 @@ class Index extends App {
     const { Component, pageProps } = this.props;
 
     return (
-      <Fragment>
+      <>
         <Head>
           <title>andycarrell > Blog</title>
           <meta
@@ -25,7 +24,7 @@ class Index extends App {
             <Component {...pageProps} />
           </Page>
         </Chakra>
-      </Fragment>
+      </>
     );
   }
 }
