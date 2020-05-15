@@ -1,4 +1,3 @@
-import Head from "next/head";
 import { Box, Text, Flex, Icon } from "@chakra-ui/core";
 
 import Chakra from "./Chakra";
@@ -51,9 +50,6 @@ const Header = () => (
 export default function Page({ children }) {
   return (
     <Chakra>
-      <Head>
-        <meta content="#38B2AC" name="theme-color" key="theme-color" />
-      </Head>
       <Header />
       <Layout>{children}</Layout>
     </Chakra>

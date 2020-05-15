@@ -5,12 +5,6 @@ class Index extends Document {
     return (
       <Html lang="en">
         <Head>
-          <title>andycarrell > Blog</title>
-          <meta
-            content="Andy Carrell's blog site"
-            name="description"
-            key="description"
-          />
           <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
             rel="stylesheet"

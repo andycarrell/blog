@@ -1,7 +1,5 @@
 import Error from "next/error";
 import { useRouter } from "next/router";
-
-import Page from "components/Page";
 import Post1 from "posts/Post1";
 
 const postFor = {
@@ -24,11 +22,7 @@ export default function Index() {
   const Post = postFor[query.slug];
 
   if (Post) {
-    return (
-      <Page>
-        <Post />
-      </Page>
-    );
+    return <Post />;
   }
 
   return <Error statusCode={404} />;
