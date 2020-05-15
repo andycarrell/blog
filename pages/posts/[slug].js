@@ -1,8 +1,8 @@
 import Error from "next/error";
 import { useRouter } from "next/router";
 
-import Page from "../../components/Page";
-import Post1 from "../../posts/Post1";
+import Page from "components/Page";
+import Post1 from "posts/Post1";
 
 const postFor = {
   "mocking-graphql-in-cypress": Post1,
