@@ -1,7 +1,8 @@
 import { Fragment } from "react";
 import App from "next/app";
 import Head from "next/head";
-import Page from "components/Page";
+import Chakra from "components/Chakra";
+import { Header, Page } from "components/layout";
 
 class Index extends App {
   render() {
@@ -18,9 +19,12 @@ class Index extends App {
           />
           <meta content="#38B2AC" name="theme-color" key="theme-color" />
         </Head>
-        <Page>
-          <Component {...pageProps} />
-        </Page>
+        <Chakra>
+          <Header />
+          <Page>
+            <Component {...pageProps} />
+          </Page>
+        </Chakra>
       </Fragment>
     );
   }
