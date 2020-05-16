@@ -2,6 +2,7 @@ import { Box, Text, Stack } from "@chakra-ui/core";
 import Head from "next/head";
 
 import {
+  Dash,
   CodeBlock,
   CodeInline,
   Quote,
@@ -37,8 +38,10 @@ export default function Post1() {
         test our web applications. It gives us confidence to deploy frequently,
         safety when we refactor, and the ability develop features before the API
         is implemented. The first two benefits are "out of the box" when testing
-        with Cypress  —  by that I mean just by writing tests you increase
-        confidence in deployments and refactors. To unlock developing features{" "}
+        with Cypress
+        <Dash />
+        by that I mean just by writing tests you increase confidence in
+        deployments and refactors. To unlock developing features{" "}
         <Text as="i">independently of your backend</Text>, I am a firm believer
         that you need to{" "}
         <ExternalLink href="https://devopedia.org/mock-testing">
@@ -58,8 +61,8 @@ export default function Post1() {
         <ExternalLink href="https://docs.cypress.io/guides/guides/network-requests.html#Testing-Strategies">
           Cypress only supports intercepting{" "}
           <CodeInline>XMLHttpRequests </CodeInline>
-        </ExternalLink>{" "}
-        —{" "}
+        </ExternalLink>
+        <Dash />
         <ExternalLink href="https://github.com/cypress-io/cypress/issues/95">
           this Github issue
         </ExternalLink>
@@ -149,10 +152,12 @@ export default function Post1() {
         means every time the schema changes, we have to copy the new definition
         into our project. So far we haven't found this to be a huge cost, since
         a changing schema often means queries or mutations require a change too.
-        There are methods of fetching the schema dynamically  — which could be
-        leveraged at run or build time  — this is on our backlog, but
-        maintaining a static copy hasn't had a high enough cost to make it a
-        high priority.
+        There are methods of fetching the schema dynamically 
+        <Dash />
+        which could be leveraged at run or build time
+        <Dash />
+        this is on our backlog, but maintaining a static copy hasn't had a high
+        enough cost to make it a high priority.
       </Paragraph>
       <Heading2>Make an executable schema and add mocks</Heading2>
       <Paragraph>
@@ -182,7 +187,8 @@ export default function Post1() {
         <ExternalLink href="https://en.wikipedia.org/wiki/ISO_8601">
           ISOString
         </ExternalLink>
-          — so we define a 'resolver', which returns a mock value:
+         <Dash />
+        so we define a 'resolver', which returns a mock value:
       </Paragraph>
       <CodeBlock>
         {`
@@ -208,19 +214,21 @@ export default function Post1() {
         you can already get the right shape of result.
       </Quote>
       <Paragraph>
-        This is immediately a big win    —   any Query or Mutation we resolve
-        against this schema will return with some result. We could drop in this
-        executable schema and have a mock straightaway. The mock wouldn't be
-        particularly reliable or consistent, so isn't a great fit for testing
-        yet.
+        This is immediately a big win  
+        <Dash />
+         any Query or Mutation we resolve against this schema will return with
+        some result. We could drop in this executable schema and have a mock
+        straightaway. The mock wouldn't be particularly reliable or consistent,
+        so isn't a great fit for testing yet.
       </Paragraph>
       <Paragraph>
         Conversely, the entire schema being mocked is extremely helpful for long
-        term test maintenance  —  the suite has a built in resilience to
-        (smaller) schema changes. Once the mocking utility is put together, and
-        we've written tests that accurately define what they depend on, we have
-        high confidence that tests only fail when the underlying code has
-        changed.
+        term test maintenance
+        <Dash />
+        the suite has a built in resilience to (smaller) schema changes. Once
+        the mocking utility is put together, and we've written tests that
+        accurately define what they depend on, we have high confidence that
+        tests only fail when the underlying code has changed.
       </Paragraph>
       <Heading2>Stub window fetch</Heading2>
       <Paragraph>
@@ -234,7 +242,9 @@ export default function Post1() {
         </ExternalLink>{" "}
         fetch. Depending on your exact use case, the following method might not
         work directly copied from here. Investigate exactly how your app
-        interacts with the API  —  that's where you want to mock.
+        interacts with the API
+        <Dash />
+        that's where you want to mock.
       </Paragraph>
       <Paragraph>
         We'll stub the fetch function, using{" "}
@@ -280,18 +290,20 @@ export default function Post1() {
         `}
       </CodeBlock>
       <Paragraph>
-        As an aside   —   I generally prefer repetition in tests because the
-        consequence of over abstraction is much higher than application code.
-        Even so, we've still written a number of custom Cypress commands
-        extracting commands or sequences of commands where they are used
-        frequently, relatively complicated, or where the commands don't
-        concisely represent the intention of a test. We mock GraphQL in (almost)
-        every test in this particular suite, so I think it's a really good
-        candidate for a custom command.
+        As an aside 
+        <Dash /> I generally prefer repetition in tests because the consequence
+        of over abstraction is much higher than application code. Even so, we've
+        still written a number of custom Cypress commands extracting commands or
+        sequences of commands where they are used frequently, relatively
+        complicated, or where the commands don't concisely represent the
+        intention of a test. We mock GraphQL in (almost) every test in this
+        particular suite, so I think it's a really good candidate for a custom
+        command.
       </Paragraph>
       <Paragraph>
-        Back to stubbing <CodeInline>window.fetch</CodeInline> —   the Apollo
-        documentation has{" "}
+        Back to stubbing <CodeInline>window.fetch</CodeInline>
+        <Dash />
+          the Apollo documentation has{" "}
         <ExternalLink href="https://www.apollographql.com/docs/graphql-tools/mocking/">
           an example resolving a query against the schema
         </ExternalLink>
@@ -426,10 +438,14 @@ export default function Post1() {
         `}
       </CodeBlock>
       <Paragraph>
-        Defining the mocks once is a big limitation    —   we really want to be
-        able to change the mock per test, so that we can tailor the conditions
-        we're testing under. This is initially fairly simple    —   generate the
-        schema dynamically each time we call the custom Cypress command:
+        Defining the mocks once is a big limitation  
+        <Dash />
+         we really want to be able to change the mock per test, so that we can
+        tailor the conditions we're testing under. This is initially fairly
+        simple  
+        <Dash />
+         generate the schema dynamically each time we call the custom Cypress
+        command:
       </Paragraph>
       <CodeBlock>
         {`
@@ -457,7 +473,8 @@ export default function Post1() {
       <Paragraph>
         This does allow us to define a different mock per test, but in every
         test we would have to also set any defaults that our schema required    
-        —  for example setting a resolver for <CodeInline>DateTime</CodeInline>:
+        <Dash />
+        for example setting a resolver for <CodeInline>DateTime</CodeInline>:
       </Paragraph>
       <CodeBlock>
         {`
@@ -559,8 +576,11 @@ export default function Post1() {
       <Paragraph>
         So far we've exclusively looked at mock resolvers for entire types on
         the schema, which does get us most of the way there. In the case of a
-        mutation  — or a query that isn't a one to one mapping to a type  —  we
-        need to mock resolvers for the Mutation / Query types respectively:
+        mutation 
+        <Dash />
+        or a query that isn't a one to one mapping to a type
+        <Dash />
+        we need to mock resolvers for the Mutation / Query types respectively:
       </Paragraph>
       <CodeBlock>
         {`
@@ -593,8 +613,9 @@ export default function Post1() {
         `}
       </CodeBlock>
       <Paragraph>
-        Take note of the capitalisation  —  in our case types (Account, Query,
-        Mutation), are{" "}
+        Take note of the capitalisation
+        <Dash />
+        in our case types (Account, Query, Mutation), are{" "}
         <ExternalLink href="https://techterms.com/definition/pascalcase">
           Pascal case
         </ExternalLink>{" "}
@@ -728,8 +749,10 @@ export default function Post1() {
         Using this simple mocking utility has enabled us to write a large number
         of high fidelity tests that run completely independently of our backend
         servers. In turn, this encourages good test coverage of frontend
-        features  — not only has this been a development productivity boost, but
-        has caught countless bugs before they even make their way to master.
+        features 
+        <Dash />
+        not only has this been a development productivity boost, but has caught
+        countless bugs before they even make their way to master.
       </Paragraph>
       <Paragraph>
         In this guide, we've taken a look at how to mock a graphQL API in a
@@ -750,7 +773,9 @@ export default function Post1() {
         instructions, so other teams can realise the same benefits we have.
         Following this guide should get a mock GraphQL API up and going in your
         Cypress tests. At each step I've explained what we did and why, but I
-        appreciate information might be lacking  —  if so{" "}
+        appreciate information might be lacking
+        <Dash />
+        if so{" "}
         <ExternalLink href="https://twitter.com/andy__carrell">
           please reach out
         </ExternalLink>{" "}

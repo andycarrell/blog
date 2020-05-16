@@ -10,6 +10,12 @@ import {
 
 import CodeHighlighter from "./CodeHighlighter";
 
+export const Dash = () => (
+  <Box as="span" px="2px">
+    — 
+  </Box>
+);
+
 export const ExternalLink = ({ children, href, ...rest }) => (
   <Link {...rest} href={href} color="cyan.800" isExternal>
     {children}
