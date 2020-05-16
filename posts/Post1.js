@@ -97,7 +97,9 @@ export default function Post1() {
         </ExternalLink>
         , we'll use their methods to unlock the ability to create custom mocks
         each time we need. The guide also heavily influenced mock providers we
-        wrote for; development tools, unit testing and storybook stories.
+        wrote and use for; development tools, unit testing, and{" "}
+        <ExternalLink href="https://storybook.js.org/">Storybook</ExternalLink>{" "}
+        stories.
       </Paragraph>
       <Heading2>Dependencies</Heading2>
       <Paragraph>The solution depends on these packages:</Paragraph>
