@@ -52,6 +52,20 @@ export const Heading2 = ({ children, ...rest }) => (
   </Text>
 );
 
+export const Overline = ({ children, ...rest }) => (
+  <Text
+    {...rest}
+    fontFamily="heading"
+    fontWeight="bold"
+    fontSize="xs"
+    color="gray.500"
+    textTransform="uppercase"
+    as="h5"
+  >
+    {children}
+  </Text>
+);
+
 export const Paragraph = ({ children, ...rest }) => (
   <Text {...rest} as="p" lineHeight="tall" fontSize="lg">
     {children}
