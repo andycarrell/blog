@@ -15,7 +15,7 @@ import {
 
 export const SEO = () => (
   <Head>
-    <title>andycarrell > Mocking GraphQL in Cypress</title>
+    <title>Mocking GraphQL in Cypress</title>
     <meta
       content="The frontend team at Jasper has had huge success using Cypress to test our web applications. It gives us confidence to deploy frequently, safety when we refactor, and the ability develop features before the API is implemented. Following this guide should get a mock GraphQL API up and going in your Cypress tests, I've carefully explained what we did at each step and why."
       name="description"
