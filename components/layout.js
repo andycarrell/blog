@@ -1,4 +1,5 @@
 import { Box, Text, Flex, Icon } from "@chakra-ui/core";
+import Share from "./Share";
 
 export const Header = () => (
   <Box
@@ -43,4 +44,24 @@ export const Page = ({ children }) => (
   >
     {children}
   </Box>
+);
+
+export const BlogPost = ({ children }) => (
+  <>
+    <Page>
+      {children}
+      <Box display={["block", "block", "none", "none"]} py={12} px={4}>
+        <Share isInline justify="flex-end" />
+      </Box>
+    </Page>
+    <Box
+      display={["none", "none", "inline-block", "inline-block"]}
+      position="sticky"
+      bottom={0}
+      pb={8}
+      pl={8}
+    >
+      <Share />
+    </Box>
+  </>
 );
