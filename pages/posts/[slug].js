@@ -1,6 +1,7 @@
 import Error from "next/error";
 import { useRouter } from "next/router";
 import Post1, { SEO } from "posts/Post1";
+import { BlogPost } from "components/layout";
 
 const postFor = {
   "mocking-graphql-in-cypress": [Post1, SEO],
@@ -23,10 +24,10 @@ export default function Index() {
 
   if (Post) {
     return (
-      <>
+      <BlogPost>
         <SEO />
         <Post />
-      </>
+      </BlogPost>
     );
   }
 
