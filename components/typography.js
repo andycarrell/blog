@@ -7,8 +7,26 @@ import {
   Link,
   useClipboard,
 } from "@chakra-ui/core";
+import styled from "@emotion/styled";
 
 import CodeHighlighter from "./CodeHighlighter";
+
+const StyledLink = styled(Link)`
+  transition: box-shadow 250ms ease-in-out;
+  padding-bottom: 1px;
+  box-shadow: none;
+  &:focus {
+    color: ${(props) => props.theme.colors.teal[500]};
+    box-shadow: 0 1px 0 0 currentColor;
+  }
+  &:hover {
+    text-decoration-line: none;
+    text-decoration-style: initial;
+    text-decoration-color: initial;
+    color: ${(props) => props.theme.colors.cyan[900]};
+    box-shadow: 0 1px 0 0 currentColor;
+  }
+`;
 
 export const Dash = () => (
   <Box as="span" px="2px">
@@ -17,9 +35,9 @@ export const Dash = () => (
 );
 
 export const ExternalLink = ({ children, href, ...rest }) => (
-  <Link {...rest} href={href} color="cyan.800" isExternal>
+  <StyledLink {...rest} href={href} color="cyan.800" isExternal>
     {children}
-  </Link>
+  </StyledLink>
 );
 
 export const Heading1 = ({ children, ...rest }) => (
@@ -67,13 +85,13 @@ export const Overline = ({ children, ...rest }) => (
 );
 
 export const Paragraph = ({ children, ...rest }) => (
-  <Text {...rest} as="p" lineHeight="tall" fontSize="lg">
+  <Text {...rest} as="p" lineHeight={1.8} fontSize="lg">
     {children}
   </Text>
 );
 
 export const UnorderedList = ({ children, ...rest }) => (
-  <Stack {...rest} spacing={2} as="ul" lineHeight="tall">
+  <Stack {...rest} spacing={2} as="ul" fontSize="lg" lineHeight={1.8}>
     {children}
   </Stack>
 );
