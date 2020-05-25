@@ -37,6 +37,7 @@ export const Header = () => (
 export const Page = ({ children }) => (
   <Box
     maxWidth={["100%", "100%", "560px", "720px"]}
+    minHeight="100vh"
     marginX="auto"
     paddingX={[2, 2, 0, 0]}
     paddingTop={[4, 4, 6, 6]}

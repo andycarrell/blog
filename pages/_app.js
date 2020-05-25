@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Chakra from "components/Chakra";
-import { Header, Page } from "components/layout";
+import { Header } from "components/layout";
 import TwitterEmbed from "components/TwitterEmbed";
 
 export default function App({ Component, pageProps }) {
