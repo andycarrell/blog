@@ -1,3 +1,4 @@
+import NextLink from "next/link";
 import {
   Box,
   Code,
@@ -38,6 +39,14 @@ export const ExternalLink = ({ children, href, ...rest }) => (
   <StyledLink {...rest} href={href} color="cyan.800" isExternal>
     {children}
   </StyledLink>
+);
+
+export const InternalLink = ({ children, href, as, ...rest }) => (
+  <NextLink href={href} as={as} passHref>
+    <StyledLink {...rest} color="cyan.800" isExternal={false}>
+      {children}
+    </StyledLink>
+  </NextLink>
 );
 
 export const Heading1 = ({ children, ...rest }) => (
@@ -88,6 +97,20 @@ export const Paragraph = ({ children, ...rest }) => (
   <Text {...rest} as="p" lineHeight={1.8} fontSize="lg">
     {children}
   </Text>
+);
+
+export const Callout = ({ children, ...rest }) => (
+  <Box
+    {...rest}
+    p={3}
+    mx={[2, 2, 5, 5]}
+    backgroundColor="gray.200"
+    borderRadius="md"
+  >
+    <Text as="div" lineHeight={1.8} fontSize={["md", "md", "lg", "lg"]}>
+      {children}
+    </Text>
+  </Box>
 );
 
 export const UnorderedList = ({ children, ...rest }) => (
