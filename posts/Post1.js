@@ -3,6 +3,7 @@ import Head from "next/head";
 
 import {
   Dash,
+  Callout,
   CodeBlock,
   CodeInline,
   Quote,
@@ -10,12 +11,13 @@ import {
   Heading2,
   Paragraph,
   ExternalLink,
+  InternalLink,
   UnorderedList,
 } from "components/typography";
 
 export const SEO = () => (
   <Head>
-    <title>Mocking GraphQL in Cypress</title>
+    <title>Mocking GraphQL in Cypress with graphql-tools v5</title>
     <meta
       content="The frontend team at Jasper has had huge success using Cypress to test our web applications. It gives us confidence to deploy frequently, safety when we refactor, and the ability develop features before the API is implemented. Following this guide should get a mock GraphQL API up and going in your Cypress tests, I've carefully explained what we did at each step and why."
       name="description"
@@ -74,6 +76,24 @@ export default function Post1() {
         achieved it.
       </Paragraph>
       <Heading2>Overview</Heading2>
+      <Callout>
+        This guide references{" "}
+        <ExternalLink href="https://www.graphql-tools.com/">
+          graphql-tools v6
+        </ExternalLink>
+        . For earlier versions,{" "}
+        <InternalLink
+          href="/posts/[pid]"
+          as="/posts/mocking-graphql-in-cypress-v5"
+        >
+          follow the v5 guide
+        </InternalLink>
+        , or{" "}
+        <ExternalLink href="https://www.graphql-tools.com/docs/migration-from-tools-v5/">
+          investigate migrating from v5 to v6
+        </ExternalLink>
+        .
+      </Callout>
       <Paragraph>
         First we'll create a schema which we can run queries against, but with
         mock resolvers. This step will largely follow the{" "}
@@ -111,10 +131,16 @@ export default function Post1() {
           - to resolve queries against your mocked schema
         </UnorderedList.Item>
         <UnorderedList.Item>
-          <ExternalLink href="https://www.apollographql.com/docs/graphql-tools/">
-            graphql-tools
+          <ExternalLink href="https://www.graphql-tools.com/docs/generate-schema/">
+            @graphql-tools/schema
           </ExternalLink>{" "}
-          - to make your schema 'executable' and add mock functions
+          - to make your schema 'executable'
+        </UnorderedList.Item>
+        <UnorderedList.Item>
+          <ExternalLink href="https://www.graphql-tools.com/docs/mocking/">
+            @graphql-tools/mock
+          </ExternalLink>{" "}
+          - to add mock functions to your schema
         </UnorderedList.Item>
       </UnorderedList>
       <Paragraph>
@@ -164,8 +190,8 @@ export default function Post1() {
       <Heading2>Make an executable schema and add mocks</Heading2>
       <Paragraph>
         Now we have a schema definition, we make an "executable" schema which
-        allows us to resolve queries against it. This section of the guide is
-        taken directly from the{" "}
+        allows us to resolve queries against it. This section of the guide
+        closely follows the{" "}
         <ExternalLink href="https://www.apollographql.com/docs/graphql-tools/mocking/">
           graphql-tools documentation
         </ExternalLink>
@@ -173,12 +199,13 @@ export default function Post1() {
       </Paragraph>
       <CodeBlock>
         {`
-          import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
+          import { makeExecutableSchema } from "@graphql-tools/schema";
+          import { addMocksToSchema } from "@graphql-tools/mock";
           import schemaString from './schemaDefinition';\n
           // Make a GraphQL schema with no resolvers
-          const schema = makeExecutableSchema({ typeDefs: schemaString });
-          // Add mocks, modifies schema in place
-          addMockFunctionsToSchema({ schema });
+          const executableSchema = makeExecutableSchema({ typeDefs: schemaString });
+          // Add mocks, returns a new schema
+          const schema = addMocksToSchema({ schema: executableSchema });
         `}
       </CodeBlock>
       <Paragraph>
@@ -200,7 +227,7 @@ export default function Post1() {
             // Also note the type - function that returns a primitive
             DateTime: () => new Date().toISOString(),
           };\n
-          addMockFunctionsToSchema({ schema, mocks });
+          const schema = addMocksToSchema({ schema: executableSchema, mocks });
         `}
       </CodeBlock>
       <Paragraph>
@@ -432,11 +459,12 @@ export default function Post1() {
       </Paragraph>
       <CodeBlock>
         {`
+          // const executableSchema = ...\n
           // Completely static
           const mocks = {
             // ...
           };\n
-          addMockFunctionsToSchema({ schema, mocks });
+          const schema = addMocksToSchema({ schema: executableSchema, mocks });
         `}
       </CodeBlock>
       <Paragraph>
@@ -453,9 +481,9 @@ export default function Post1() {
         {`
           import schemaString from './schemaDefinition';\n
           function makeMockedSchema({ mocks }) {
-            const schema = makeExecutableSchema({ typeDefs: schemaString });
-            addMockFunctionsToSchema({ schema, mocks });
-            return schema;
+            const executableSchema = makeExecutableSchema({ typeDefs: schemaString });
+            const schemaWithMocks = addMocksToSchema({ schema: executableSchema, mocks });
+            return schemaWithMocks;
           }\n
           Cypress.Commands.add("mockGraphQLApi", { prevSubject: false },
             (mocks = {}) => {
@@ -566,10 +594,10 @@ export default function Post1() {
             Fraction: () => ({ numerator: 10, denominator: 45 }),
           };\n
           function makeMockedSchema({ mocks }) {
-            const schema = makeExecutableSchema({ typeDefs: schemaString });
             const mergedMocks = mergeResolvers(defaultMocks, mocks);
-            addMockFunctionsToSchema({ schema, mocks: mergedMocks });
-            return schema;
+            const executableSchema = makeExecutableSchema({ typeDefs: schemaString });
+            const schemaWithMocks = addMocksToSchema({ schema: executableSchema, mocks: mergedMocks });
+            return schemaWithMocks;
           }\n
           // Cypress.Commands.add("mockGraphQLApi", ...)
         `}
@@ -662,7 +690,8 @@ export default function Post1() {
       </Paragraph>
       <CodeBlock>
         {`
-          import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
+          import { makeExecutableSchema } from "@graphql-tools/schema";
+          import { addMocksToSchema } from "@graphql-tools/mock";
           // This is the schema string
           import schemaDefinition from "./schemaDefinition";\n
           function mergeResolvers(target, input) {
@@ -697,9 +726,9 @@ export default function Post1() {
           };\n
           export default function makeMockedSchema({ mocks }) {
             const mergedMocks = mergeResolvers(defaultMocks, mocks);
-            const schema = makeExecutableSchema({ typeDefs: schemaDefinition });
-            addMockFunctionsToSchema({ schema, mocks: mergedMocks });\n
-            return schema;
+            const executableSchema = makeExecutableSchema({ typeDefs: schemaString });
+            const schemaWithMocks = addMocksToSchema({ schema: executableSchema, mocks: mergedMocks });
+            return schemaWithMocks;
           }
         `}
       </CodeBlock>
