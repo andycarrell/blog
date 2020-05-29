@@ -39,7 +39,7 @@ export const Page = ({ children }) => (
     maxWidth={["100%", "100%", "560px", "720px"]}
     minHeight="100vh"
     marginX="auto"
-    paddingX={[2, 2, 0, 0]}
+    paddingX={[4, 4, 0, 0]}
     paddingTop={[4, 4, 6, 6]}
     paddingBottom={[24, 24, 32, 32]}
   >

@@ -1,10 +1,10 @@
 import Error from "next/error";
 import { useRouter } from "next/router";
-import Post2, { SEO } from "posts/Post2";
+import Post, { SEO } from "posts/DraftPost3";
 import { BlogPost } from "components/layout";
 
 const draftsFor = {
-  "publishing-an-npm-library-on-github": [Post2, SEO],
+  "publishing-an-npm-library-on-github": [Post, SEO],
 };
 
 export function getStaticPaths() {
