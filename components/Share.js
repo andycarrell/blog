@@ -13,13 +13,12 @@ function useMerge([state, setState]) {
 }
 
 function useShare() {
-  // This should come from an environment variable
-  const base = "https://blog.andycarrell.now.sh";
+  const sitePath = process.env.NEXT_PUBLIC_SITE_PATH;
   const { asPath } = useRouter();
 
   const [share, mergeState] = useMerge(
     useState({
-      url: `${base}${asPath}`,
+      url: `${sitePath}${asPath}`,
       via: "andy__carrell",
       text: encodeURIComponent("Check out this post 👉"),
     })
@@ -36,7 +35,7 @@ function useShare() {
 
 const Copy = ({ url }) => {
   const { onCopy, hasCopied } = useClipboard(url);
-  const label = "Copy url";
+  const label = `Copy ${url}`;
 
   return (
     <IconButton
