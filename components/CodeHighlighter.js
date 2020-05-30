@@ -2,13 +2,23 @@ import Highlight, { defaultProps } from "prism-react-renderer";
 import defaultTheme from "prism-react-renderer/themes/nightOwlLight";
 import prettier from "prettier/standalone";
 import prettierParserBabel from "prettier/parser-babel";
+import prettierParserYaml from "prettier/parser-yaml";
 
 const theme = {
   ...defaultTheme,
   plain: { ...defaultTheme.plain, backgroundColor: "transparent" },
 };
 
-const formatCode = (str) =>
+const formatYaml = (str) =>
+  prettier
+    .format(str, {
+      printWidth: 75,
+      parser: "yaml",
+      plugins: [prettierParserYaml],
+    })
+    .trim();
+
+const formatJavascript = (str) =>
   prettier
     .format(str, {
       printWidth: 75,
@@ -16,6 +26,11 @@ const formatCode = (str) =>
       plugins: [prettierParserBabel],
     })
     .trim();
+
+const formatFor = {
+  javascript: formatJavascript,
+  yaml: formatYaml,
+};
 
 const LineNumber = ({ children }) => (
   <span
@@ -35,12 +50,14 @@ const LineNumber = ({ children }) => (
   </span>
 );
 
-export default function CodeHighlighter({ children }) {
+export default function CodeHighlighter({ children, language = "javascript" }) {
+  const formatCode = formatFor[language] ?? formatJavascript;
+
   return (
     <Highlight
       {...defaultProps}
       theme={theme}
-      language="javascript"
+      language={language}
       code={formatCode(children)}
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
