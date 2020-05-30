@@ -5,9 +5,27 @@ class Index extends Document {
     return (
       <Html lang="en">
         <Head>
+          <link rel="manifest" href="../static/favicon/site.webmanifest" />
           <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
             rel="stylesheet"
+          />
+          <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="../static/favicon/apple-touch-icon.png"
+          />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="../static/favicon/favicon-32x32.png"
+          />
+          <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="../static/favicon/favicon-16x16.png"
           />
         </Head>
         <body style={{ overflowX: "hidden", margin: 0 }}>
