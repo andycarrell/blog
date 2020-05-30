@@ -2,7 +2,6 @@ import { Box, Stack } from "@chakra-ui/core";
 import Head from "next/head";
 
 import {
-  Callout,
   CodeBlock,
   CodeInline,
   Dash,
@@ -11,6 +10,7 @@ import {
   Heading2,
   Paragraph,
   Quote,
+  UnorderedList,
 } from "components/typography";
 
 const TITLE = "Publishing an NPM package on GitHub";
@@ -102,22 +102,22 @@ export default function Post1() {
                 - name: Authenticate GitHub package registry
                   run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
                 - name: Set short sha as environment variable
-            # we use this in our build script to ensure our versions are unique per push
+                  # we use this in our build script to ensure our versions are unique per push
                   run: echo ::set-env name=sha_short::$(git rev-parse --short \${{ github.sha }})
                 - name: Setup node
                   uses: actions/setup-node@v1
                 - name: Install
                   run: npm install
                 - name: Verify
-            # we run eslint and tests
+                  # we run eslint and tests
                   run: npm run lint && npm run test
                 - name: Build
-            # we use rollup, so our script is "rollup -c rollup.config.js"
+                  # we use rollup, so our script is "rollup -c rollup.config.js"
                   run: npm run build-library -- --version-suffix \${{ env.sha_short }}
                 - name: Publish - dry run
                   run: npm publish output -- --dry-run
                 - name: Publish
-            # only run this step on commit to master
+                  # only run this step on commit to master
                   if: github.ref == 'refs/heads/master' && github.event_name == 'push'
                   run: npm publish output
         `}
@@ -199,14 +199,126 @@ export default function Post1() {
       </CodeBlock>
       <Paragraph>
         The "on" configuration defines which{" "}
-        <ExternalLink href="https://help.github.com/en/actions/reference/events-that-trigger-workflows">
+        <ExternalLink href="https://help.github.com/en/actions/reference/events-that-trigger-workflows/">
           events will trigger your workflow
         </ExternalLink>
         . We further refine the conditions in which workflow is triggered
         <Dash />
         in this example, any git push, to the master branch, where file(s) in
-        the library / directory have changed.
+        the library or directory have changed.
       </Paragraph>
+      <Paragraph>
+        A GitHub action needs at least one "job" (with steps) to run anything.
+        Again, the job id and name aren't so important, but will identify the
+        job in the GitHub UI:
+      </Paragraph>
+      <CodeBlock language="yaml">
+        {`
+          # ...
+          # on: ...\n
+          jobs:
+            # job 'id'
+            build:
+              name: Build & publish
+              runs-on: ubuntu-latest
+              steps:
+                - name: Checkout code
+                  uses: actions/checkout@v1
+        `}
+      </CodeBlock>
+      <Paragraph>
+        If we want to run an action with or against our code we need to check it
+        out first. Whilst GitHub doesn't do that by default, we can simply
+        reference{" "}
+        <ExternalLink href="https://github.com/actions/checkout/">
+          the checkout action
+        </ExternalLink>
+        .
+      </Paragraph>
+      <Quote>
+        This action checks-out your repository under{" "}
+        <CodeInline>$GITHUB_WORKSPACE</CodeInline>, so your workflow can access
+        it.
+      </Quote>
+      <Paragraph>
+        Also note the{" "}
+        <ExternalLink href="https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on">
+          runs-on property
+        </ExternalLink>
+        <Dash />
+        this is required and specifies the type of machine to run the job on.
+        There's a few options, but for a node / npm based action{" "}
+        <CodeInline>ubuntu-latest</CodeInline> will work fine.
+      </Paragraph>
+      <Paragraph>
+        To publish a package, we need to authenticate our action for the GitHub
+        NPM registry. The{" "}
+        <ExternalLink href="https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-npm-for-use-with-github-packages#authenticating-to-github-packages">
+          official documentation
+        </ExternalLink>{" "}
+        recommends a couple of ways of doing this, neither of which were
+        practical for use in an continuous integration (CI) context. The
+        solution we found involves appending the{" "}
+        <CodeInline>
+          <ExternalLink href="https://help.github.com/en/actions/configuring-and-managing-workflows/authenticating-with-the-github_token">
+            GITHUB_TOKEN
+          </ExternalLink>
+        </CodeInline>{" "}
+        to the <CodeInline>.npmrc</CodeInline> file <i>after checkout</i>, which
+        avoids having to commit sensitive tokens. We can acheive this using bash
+        syntax to overwrite a file:
+      </Paragraph>
+      <Box marginLeft={[4, 4, 6, 6]} padding={2}>
+        <CodeInline>echo '...' > ~/.npmrc</CodeInline>
+      </Box>
+      <Paragraph>
+        We run this immediately after checking out our code:
+      </Paragraph>
+      <CodeBlock language="yaml">
+        {`
+          # ...
+          # on: ...\n
+          jobs:
+            build:
+              name: Build & publish
+              runs-on: ubuntu-latest
+              steps:
+                - name: Checkout code
+                  uses: actions/checkout@v1
+                - name: Authenticate GitHub package registry
+                  run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+                # - name: Set short sha as environment variable
+                #   we use this in our build script to ensure our versions are unique per push
+                #   run: echo ::set-env name=sha_short::$(git rev-parse --short \${{ github.sha }})
+        `}
+      </CodeBlock>
+      <Paragraph>
+        For reference, the{" "}
+        <ExternalLink href="https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-npm-for-use-with-github-packages#authenticating-to-github-packages">
+          recommended approaches for authenticating
+        </ExternalLink>{" "}
+        are:
+      </Paragraph>
+      <UnorderedList>
+        <UnorderedList.Item>
+          <CodeInline>
+            <ExternalLink href="https://docs.npmjs.com/cli/adduser/">
+              npm login
+            </ExternalLink>
+          </CodeInline>
+          <Dash />
+          requires CLI input so won't work in CI.
+        </UnorderedList.Item>
+        <UnorderedList.Item>
+          <ExternalLink href="https://www.graphql-tools.com/docs/generate-schema/">
+            Editing your per-user
+          </ExternalLink>{" "}
+          <CodeInline>~/.npmrc</CodeInline> file
+          <Dash />
+          requires committing sensitive auth tokens in the project's{" "}
+          <CodeInline>~/.npmrc</CodeInline> file.
+        </UnorderedList.Item>
+      </UnorderedList>
     </Stack>
   );
 }
