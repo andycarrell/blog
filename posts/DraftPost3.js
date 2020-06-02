@@ -11,6 +11,7 @@ import {
   Paragraph,
   Quote,
   UnorderedList,
+  Callout,
 } from "components/typography";
 
 const TITLE = "Publishing an NPM package on GitHub";
@@ -85,13 +86,13 @@ export default function Post1() {
           on:
             pull_request:
               paths:
-                - 'library/**'
+                - "library/**"
             push:
               branches:
                 # or your 'default' branch
                 - master
               paths:
-                - 'library/**'\n
+                - "library/**"\n
           jobs:
             build:
               name: Build & publish
@@ -109,10 +110,10 @@ export default function Post1() {
                 - name: Install
                   run: npm install
                 - name: Verify
-                  # we run eslint and tests
+                  # these are custom scripts to run eslint and tests
                   run: npm run lint && npm run test
                 - name: Build
-                  # we use rollup, so our script is "rollup -c rollup.config.js"
+                  # we use rollup, so our script is 'rollup -c rollup.config.js'
                   run: npm run build-library -- --version-suffix \${{ env.sha_short }}
                 - name: Publish - dry run
                   run: npm publish output -- --dry-run
@@ -194,7 +195,7 @@ export default function Post1() {
                 # or your 'default' branch
                 - master
               paths:
-                - 'library/**'
+                - "library/**"
         `}
       </CodeBlock>
       <Paragraph>
@@ -287,9 +288,9 @@ export default function Post1() {
                   uses: actions/checkout@v1
                 - name: Authenticate GitHub package registry
                   run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
-                # - name: Set short sha as environment variable
-                #   we use this in our build script to ensure our versions are unique per push
-                #   run: echo ::set-env name=sha_short::$(git rev-parse --short \${{ github.sha }})
+                # Setup node ...
+                # Install ...
+                # Verify & build ...
         `}
       </CodeBlock>
       <Paragraph>
@@ -319,6 +320,221 @@ export default function Post1() {
           <CodeInline>~/.npmrc</CodeInline> file.
         </UnorderedList.Item>
       </UnorderedList>
+      <Paragraph>
+        To run node in our GitHub action, we need to set it up
+        <Dash />
+        there's{" "}
+        <ExternalLink href="https://github.com/actions/setup-node/">
+          an action for that too
+        </ExternalLink>
+        :
+      </Paragraph>
+      <CodeBlock language="yaml">
+        {`
+          # ...
+          # on: ...\n
+          jobs:
+            build:
+              name: Build & publish
+              runs-on: ubuntu-latest
+              steps:
+                # Checkout ...
+                # Authenticate ...
+                - name: Setup node
+                  uses: actions/setup-node@v1
+        `}
+      </CodeBlock>
+      <Paragraph>
+        Now, we can install, run any verification scripts, build the library and
+        finally publish!
+      </Paragraph>
+      <CodeBlock language="yaml">
+        {`
+          # .github/workflows/publish-library.yml
+          name: Library build & publish
+          on:
+            push:
+              branches:
+                # or your 'default' branch
+                - master
+              paths:
+                - "library/**"\n
+          jobs:
+            build:
+              name: Build & publish
+              runs-on: ubuntu-latest
+              steps:
+                - name: Checkout code
+                  uses: actions/checkout@v1
+                - name: Authenticate GitHub package registry
+                  run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+                - name: Setup node
+                  uses: actions/setup-node@v1
+                - name: Install
+                  run: npm install
+                - name: Verify
+                  # these are custom scripts to run eslint and tests
+                  run: npm run lint && npm run test
+                - name: Build
+                  # we use rollup, so our script is 'rollup -c rollup.config.js'
+                  run: npm run build-library
+                - name: Publish
+                  run: npm publish output
+        `}
+      </CodeBlock>
+      <Callout>
+        At this point you should be publishing every time make changes to your
+        library and push to master
+        <Dash />
+        provided you update the library version with each change. Carefully
+        consider if this is an appropriate publishing frequency for your
+        library.
+      </Callout>
+      <Paragraph>
+        Our motivation for publishing in this way is to minimise the time (and
+        effort) making a change and consuming it in another project. The cost of
+        this is we have many versions each containing small changes, which are
+        also often undocumented. This doesn't make for a good consumer
+        experience. However, in this case it's a library for internal use only,
+        and generally developers making the changes are also consuming them.
+        It's also something we can definitely iterate on.
+      </Paragraph>
+      <Paragraph>
+        To improve the developer experience of contributing to our library
+        <Dash />
+        we added the following features:
+      </Paragraph>
+      <UnorderedList>
+        <UnorderedList.Item>
+          Early feedback
+          <Dash />
+          if a developer is making a change, can we let them know if the library
+          will publish successfully before committing to master.
+        </UnorderedList.Item>
+        <UnorderedList.Item>
+          Automated unique versioning
+          <Dash />
+          for a given change, we assume the developer wants a new version
+          released, without the chore of releasing it themselves.
+        </UnorderedList.Item>
+      </UnorderedList>
+      <Heading2>Pull request dry run</Heading2>
+      <Paragraph>
+        We can update our GitHub action so that on every pull request we run all
+        the steps, except for actually publishing a new version.
+      </Paragraph>
+      <Paragraph>
+        First, we need to trigger the action on pull request as well as push:
+      </Paragraph>
+      <CodeBlock language="yaml">
+        {`
+          name: Library build & publish
+          on:
+            pull_request:
+              paths:
+                - "library/**"
+            push:
+              branches:
+                # or your 'default' branch
+                - master
+              paths:
+                - "library/**"\n
+          jobs:
+            # ...
+        `}
+      </CodeBlock>
+      <Paragraph>
+        Then we need to{" "}
+        <i>only run the publish step, when a push (to master) event happens</i>.
+      </Paragraph>
+
+      <CodeBlock language="yaml">
+        {`
+          # .github/workflows/publish-library.yml
+          name: Library build & publish
+          on:
+            pull_request:
+              paths:
+                - "library/**"
+            push:
+              branches:
+                # or your 'default' branch
+                - master
+              paths:
+                - "library/**"\n
+          jobs:
+            build:
+              name: Build & publish
+              runs-on: ubuntu-latest
+              steps:
+                # Checkout ...
+                # Authenticate ...
+                # Setup node ...
+                # Install, verify & build ...
+                - name: Publish
+                  # only run this step on commit to master
+                  if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+                  run: npm publish output
+        `}
+      </CodeBlock>
+      <Paragraph>
+        Finally, on pull requests we can perform a "dry run" of publishing:
+      </Paragraph>
+      <Quote>
+        <ExternalLink href="https://docs.npmjs.com/cli/publish/">
+          <CodeInline>[--dry-run]</CodeInline> As of npm@6, does everything
+          publish would do except actually publishing to the registry.
+        </ExternalLink>
+      </Quote>
+      <Paragraph>
+        This is useful as it shows whether the change will actually build and
+        publish successfully.
+      </Paragraph>
+      <Paragraph>
+        Our action with pull request feedback now looks as follows:
+      </Paragraph>
+      <CodeBlock language="yaml">
+        {`
+          # .github/workflows/publish-library.yml
+          name: Library build & publish
+          on:
+            pull_request:
+              paths:
+                - "library/**"
+            push:
+              branches:
+                # or your 'default' branch
+                - master
+              paths:
+                - "library/**"\n
+          jobs:
+            build:
+              name: Build & publish
+              runs-on: ubuntu-latest
+              steps:
+                - name: Checkout code
+                  uses: actions/checkout@v1
+                - name: Authenticate GitHub package registry
+                  run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+                - name: Setup node
+                  uses: actions/setup-node@v1
+                - name: Install
+                  run: npm install
+                - name: Verify
+                  # these are custom scripts to run eslint and tests
+                  run: npm run lint && npm run test
+                - name: Build
+                  # we use rollup, so our script is 'rollup -c rollup.config.js'
+                  run: npm run build-library
+                - name: Publish - dry run
+                  # this step runs every time, but only takes a few seconds
+                  run: npm publish output -- --dry-run
+                - name: Publish
+                  # only run this step on commit to master
+                  if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+                  run: npm publish output
+        `}
+      </CodeBlock>
     </Stack>
   );
 }
