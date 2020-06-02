@@ -174,13 +174,14 @@ export const CodeBlock = ({ children, language, ...rest }) => {
   );
 };
 
-export const CodeInline = ({ children }) => (
+export const CodeInline = ({ children, ...rest }) => (
   <Code
     backgroundColor="gray.50"
     fontSize="sm"
     lineHeight="tall"
     wordBreak="break-all"
     padding="2px"
+    {...rest}
   >
     {children}
   </Code>

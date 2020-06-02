@@ -104,7 +104,7 @@ export default function Post1() {
                   run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
                 - name: Set short sha as environment variable
                   # we use this in our build script to ensure our versions are unique per push
-                  run: echo ::set-env name=sha_short::$(git rev-parse --short \${{ github.sha }})
+                  run: echo ::set-env name=sha_short::$(git rev-parse --short=7 \${{ github.sha }})
                 - name: Setup node
                   uses: actions/setup-node@v1
                 - name: Install
@@ -535,6 +535,88 @@ export default function Post1() {
                   run: npm publish output
         `}
       </CodeBlock>
+      <Heading2>Versioning</Heading2>
+      <Paragraph>
+        As the action stands, the{" "}
+        <ExternalLink href="https://docs.npmjs.com/cli/publish/">
+          publish step will fail
+        </ExternalLink>{" "}
+        unless the developer remembers to update the version with each change.
+      </Paragraph>
+      <Quote>
+        Once a package is published with a given name and version, that specific
+        name and version combination can never be used again, even if it is
+        removed with npm-unpublish.
+      </Quote>
+      <Paragraph>
+        Additionally, if multiple developers are working on the library at the
+        same time, they'll need to coordinate to ensure that they don't land on
+        the same new version, or that a later version lands before an earlier
+        one.
+      </Paragraph>
+      <Paragraph>
+        These issues highlight a manual process that could be improved by
+        automating
+        <Dash />
+        both the choice of version, and applying a new version with each change.
+        To achieve this, we apply the constraint that each of our versions is
+        made up of a standard{" "}
+        <ExternalLink href="https://semver.org/">
+          semantic version
+        </ExternalLink>{" "}
+        and a unqiue suffix, which is the (short){" "}
+        <ExternalLink href="https://blog.thoughtram.io/git/2014/11/18/the-anatomy-of-a-git-commit.html/">
+          Git SHA
+        </ExternalLink>
+        .
+      </Paragraph>
+      <Box marginLeft={[4, 4, 6, 6]} padding={2}>
+        <CodeInline>{`"@<organisation>/<library>": "0.1.0-3b4c0a0"`}</CodeInline>
+      </Box>
+      <Paragraph>
+        Our build script takes a version suffix as a command line argument and
+        appends that to a semantic version defined in code. Prior to that, we
+        parse the first 7 digits of the Git SHA and assign it to an environment
+        variable:
+      </Paragraph>
+      <CodeBlock language="yaml">
+        {`
+          # .github/workflows/publish-library.yml
+          name: Library build & publish
+          on:
+            # pull_request ...
+            # push: ...\n
+          jobs:
+            build:
+              name: Build & publish
+              runs-on: ubuntu-latest
+              steps:
+                # Checkout ...
+                # Authenticate ...
+                - name: Set short sha as environment variable
+                  run: echo ::set-env name=sha_short::$(git rev-parse --short=7 \${{ github.sha }})
+                # Setup node ...
+                # Install, verify ...
+                - name: Build
+                  run: npm run build-library -- --version-suffix \${{ env.sha_short }}
+                # Publish - dry run ...
+                # Publish ...
+        `}
+      </CodeBlock>
+      <Callout>
+        If you're using{" "}
+        <ExternalLink href="https://rollupjs.org/">Rollup</ExternalLink> and are
+        extracting a library from a larger project, or need to manipulate the
+        final <CodeInline backgroundColor="inherit">package.json</CodeInline>, I
+        recommend the rollup plugin
+        <CodeInline backgroundColor="inherit">
+          <ExternalLink href="https://github.com/vladshcherbin/rollup-plugin-generate-package-json#readme">
+            generate-package-json
+          </ExternalLink>
+        </CodeInline>
+        . It allows you to overwrite the contents of the current file, as well
+        as automatically populating dependencies that are used by your build.
+      </Callout>
     </Stack>
   );
 }
