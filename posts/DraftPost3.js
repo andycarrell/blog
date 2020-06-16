@@ -127,12 +127,18 @@ export default function Post1() {
       <Paragraph>
         As mentioned, make sure you have GitHub packages enabled. As far as I
         know, if you navigate to{" "}
-        <CodeInline>
-          {"https://github.com/<user-name>/<repo-name>/packages"}
+        <CodeInline display="inline">
+          https://github.com/&lt;user-name&gt;/&lt;repo-name&gt;/packages
         </CodeInline>{" "}
         and you see the following screen, you're good to go:
       </Paragraph>
-      <Quote>Insert image here</Quote>
+      <Box padding={4}>
+        <img
+          src="/publishing-an-npm-package-on-github/github-packages.png"
+          loading="lazy"
+          alt="Github Packages 'Getting Started' screen"
+        />
+      </Box>
       <Paragraph>
         If not, you may have to dive into your plan and even reach out to GitHub
         for help. On that note, if you're developing a package in a private
