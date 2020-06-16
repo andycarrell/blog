@@ -27,7 +27,7 @@ export const SEO = () => (
   </Head>
 );
 
-export default function Post1() {
+export default function Post3() {
   return (
     <Stack>
       <Box maxWidth={660} marginX="auto" marginY={[5, 5, 6, 8]}>
@@ -679,6 +679,35 @@ export default function Post1() {
                   run: npm publish output
         `}
       </CodeBlock>
+      <Heading2>Consuming your GitHub package</Heading2>
+      <Paragraph>
+        Consuming your NPM package requires adding the GitHub registry URL to
+        your <CodeInline>.npmrc</CodeInline>:
+      </Paragraph>
+      <CodeBlock language="yaml">
+        registry=https://npm.pkg.github.com/&lt;user-name&gt;
+      </CodeBlock>
+      <Paragraph>
+        Find the latest version of your package under the packages tab of your
+        projects's repository:
+      </Paragraph>
+      <Box marginLeft={[4, 4, 6, 6]} padding={2}>
+        <CodeInline>
+          https://github.com/&lt;user-name&gt;/&lt;repo-name&gt;/packages
+        </CodeInline>
+      </Box>
+      <Paragraph>
+        Add this version to the <CodeInline>package.json</CodeInline> of the
+        project where you want to consume it.
+      </Paragraph>
+      <Paragraph>
+        If your project's repository is private, then the package will be too.
+        To give yourself access to install locally, you'll need to run{" "}
+        <ExternalLink href="https://docs.npmjs.com/cli/adduser">
+          add an NPM registry user account
+        </ExternalLink>
+        .
+      </Paragraph>
     </Stack>
   );
 }
