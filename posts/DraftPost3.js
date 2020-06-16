@@ -270,7 +270,7 @@ export default function Post1() {
         syntax to overwrite a file:
       </Paragraph>
       <Box marginLeft={[4, 4, 6, 6]} padding={2}>
-        <CodeInline>echo '...' > ~/.npmrc</CodeInline>
+        <CodeInline>echo '...' &gt; ~/.npmrc</CodeInline>
       </Box>
       <Paragraph>
         We run this immediately after checking out our code:
@@ -423,6 +423,17 @@ export default function Post1() {
         We can update our GitHub action so that on every pull request we run all
         the steps, except for actually publishing a new version.
       </Paragraph>
+      <Callout>
+        For even earlier feedback, take a look at{" "}
+        <CodeInline backgroundColor="inherit">
+          <ExternalLink href="https://github.com/nektos/act/">
+            nektos/act
+          </ExternalLink>
+        </CodeInline>
+        . It allows you to run actions locally
+        <Dash />
+        be careful you don't accidentally publish a new version!
+      </Callout>
       <Paragraph>
         First, we need to trigger the action on pull request as well as push:
       </Paragraph>
@@ -445,9 +456,8 @@ export default function Post1() {
       </CodeBlock>
       <Paragraph>
         Then we need to{" "}
-        <i>only run the publish step, when a push (to master) event happens</i>.
+        <i>only run the publish step when a push (to master) event happens</i>.
       </Paragraph>
-
       <CodeBlock language="yaml">
         {`
           # .github/workflows/publish-library.yml
@@ -490,9 +500,7 @@ export default function Post1() {
         This is useful as it shows whether the change will actually build and
         publish successfully.
       </Paragraph>
-      <Paragraph>
-        Our action with pull request feedback now looks as follows:
-      </Paragraph>
+      <Paragraph>Our action with pull request feedback:</Paragraph>
       <CodeBlock language="yaml">
         {`
           # .github/workflows/publish-library.yml
@@ -556,11 +564,11 @@ export default function Post1() {
       </Paragraph>
       <Paragraph>
         These issues highlight a manual process that could be improved by
-        automating
+        automation
         <Dash />
         both the choice of version, and applying a new version with each change.
-        To achieve this, we apply the constraint that each of our versions is
-        made up of a standard{" "}
+        To achieve this, we apply the constraint that each of our versions
+        consists of a standard{" "}
         <ExternalLink href="https://semver.org/">
           semantic version
         </ExternalLink>{" "}
@@ -571,7 +579,9 @@ export default function Post1() {
         .
       </Paragraph>
       <Box marginLeft={[4, 4, 6, 6]} padding={2}>
-        <CodeInline>{`"@<organisation>/<library>": "0.1.0-3b4c0a0"`}</CodeInline>
+        <CodeInline>
+          "@&lt;organisation&gt;/&lt;library&gt;": "0.1.0-3b4c0a0"
+        </CodeInline>
       </Box>
       <Paragraph>
         Our build script takes a version suffix as a command line argument and
@@ -608,15 +618,61 @@ export default function Post1() {
         <ExternalLink href="https://rollupjs.org/">Rollup</ExternalLink> and are
         extracting a library from a larger project, or need to manipulate the
         final <CodeInline backgroundColor="inherit">package.json</CodeInline>, I
-        recommend the rollup plugin
+        recommend the rollup plugin{" "}
         <CodeInline backgroundColor="inherit">
           <ExternalLink href="https://github.com/vladshcherbin/rollup-plugin-generate-package-json#readme">
             generate-package-json
           </ExternalLink>
         </CodeInline>
-        . It allows you to overwrite the contents of the current file, as well
-        as automatically populating dependencies that are used by your build.
+        .<br />
+        It allows you to overwrite the contents of the current file, as well as
+        automatically populating dependencies that are used by your build.
       </Callout>
+      <Paragraph>The complete action is as follows:</Paragraph>
+      <CodeBlock language="yaml">
+        {`
+          # .github/workflows/publish-library.yml
+          name: Library build & publish
+          on:
+            pull_request:
+              paths:
+                - "library/**"
+            push:
+              branches:
+                # or your 'default' branch
+                - master
+              paths:
+                - "library/**"\n
+          jobs:
+            build:
+              name: Build & publish
+              runs-on: ubuntu-latest
+              steps:
+                - name: Checkout code
+                  uses: actions/checkout@v1
+                - name: Authenticate GitHub package registry
+                  run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+                - name: Set short sha as environment variable
+                  # we use this in our build script to ensure our versions are unique per push
+                  run: echo ::set-env name=sha_short::$(git rev-parse --short=7 \${{ github.sha }})
+                - name: Setup node
+                  uses: actions/setup-node@v1
+                - name: Install
+                  run: npm install
+                - name: Verify
+                  # these are custom scripts to run eslint and tests
+                  run: npm run lint && npm run test
+                - name: Build
+                  # we use rollup, so our script is 'rollup -c rollup.config.js'
+                  run: npm run build-library -- --version-suffix \${{ env.sha_short }}
+                - name: Publish - dry run
+                  run: npm publish output -- --dry-run
+                - name: Publish
+                  # only run this step on commit to master
+                  if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+                  run: npm publish output
+        `}
+      </CodeBlock>
     </Stack>
   );
 }
