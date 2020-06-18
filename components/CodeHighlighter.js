@@ -28,6 +28,7 @@ const formatJavascript = (str) =>
     .trim();
 
 const formatFor = {
+  none: (str) => str.trim(),
   javascript: formatJavascript,
   yaml: formatYaml,
 };

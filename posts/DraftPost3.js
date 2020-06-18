@@ -702,12 +702,40 @@ export default function Post3() {
       </Paragraph>
       <Paragraph>
         If your project's repository is private, then the package will be too.
-        To give yourself access to install locally, you'll need to run{" "}
+        To give yourself access to install locally, you'll need to{" "}
         <ExternalLink href="https://docs.npmjs.com/cli/adduser">
           add an NPM registry user account
         </ExternalLink>
         .
       </Paragraph>
+      <Paragraph>
+        First, create a{" "}
+        <ExternalLink href="https://github.com/settings/tokens/new">
+          new GitHub token
+        </ExternalLink>{" "}
+        with the <CodeInline>read:packages</CodeInline> scope. Adding{" "}
+        <CodeInline>write:packages</CodeInline> and{" "}
+        <CodeInline>delete:packages</CodeInline> will be helpful if you plan on
+        managing packages from the command line. Keep the access token handy for
+        the next step.
+      </Paragraph>
+      <Paragraph>
+        Next, enter the following commands into your terminal:
+      </Paragraph>
+      <CodeBlock language="none">
+        {`
+# cd into your root folder
+cd ~
+
+# authenticate for the GitHub package registry
+npm adduser --registry=https://npm.pkg.github.com/ --scope=<user-name>
+
+# command line will prompt you for your details
+Username: <your github username>
+Password: <paste github access token>
+Email: (this IS public) <your github public email>
+        `}
+      </CodeBlock>
     </Stack>
   );
 }
