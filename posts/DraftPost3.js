@@ -51,7 +51,7 @@ export default function Post3() {
         <Dash />
         all the information you need is in the official documentation, or
         associated forums. This post distills down that information, focuses in
-        on NPM and outlines the process that's working for the frontend team at{" "}
+        on NPM, and outlines the process that's working for the frontend team at{" "}
         <ExternalLink href="https://www.jasper.io/">Jasper</ExternalLink>.
       </Paragraph>
       <Heading2>Overview</Heading2>
@@ -702,9 +702,9 @@ export default function Post3() {
       </Paragraph>
       <Paragraph>
         If your project's repository is private, then the package will be too.
-        To give yourself access to install locally, you'll need to{" "}
+        To give yourself access to install locally, you'll need to authenticate{" "}
         <ExternalLink href="https://docs.npmjs.com/cli/adduser">
-          add an NPM registry user account
+          an NPM registry user account
         </ExternalLink>
         .
       </Paragraph>
@@ -736,6 +736,71 @@ Password: <paste github access token>
 Email: (this IS public) <your github public email>
         `}
       </CodeBlock>
+      <Paragraph>
+        You should then have access to install and use your package locally.
+      </Paragraph>
+      <Paragraph>
+        To authenticate GitHub actions in other repositories, you'll need to
+        authenticate in the same way as we did in our publish action, after we
+        checkout, and before we install:
+      </Paragraph>
+      <CodeBlock language="yaml">
+        {`
+         # ...
+          jobs:
+            another-action:
+              name: ...
+              runs-on: ubuntu-latest
+              steps:
+                - name: Checkout code
+                  uses: actions/checkout@v1
+                - name: Authenticate GitHub package registry
+                  run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.NPM_TOKEN }}' > ~/.npmrc
+                # Setup node ...
+                # Install, verify ...
+        `}
+      </CodeBlock>
+      <Paragraph>
+        Note that we use a different secret key (here called{" "}
+        <CodeInline>NPM_TOKEN</CodeInline>) because:
+      </Paragraph>
+      <Quote>
+        <ExternalLink href="https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/using-github-packages-with-github-actions/">
+          <CodeInline>GITHUB_TOKEN</CodeInline> cannot install packages from any
+          private repository besides the repository where the action runs.
+        </ExternalLink>
+      </Quote>
+      <Paragraph>
+        You can create another token or use the same one you created for local
+        usage. Storing secrets against the repo (
+        <CodeInline display="inline">
+          https://github.com/&lt;user-name&gt;/&lt;repo-name&gt;/settings/secrets
+        </CodeInline>
+        ), makes them available to GitHub actions.
+      </Paragraph>
+      <Heading2>Conclusion</Heading2>
+      <Paragraph>
+        This guide details how to build and publish a pacakge to the GitHub NPM
+        package registry, using GitHub actions. Assuming you've got a package or
+        library you're already building locally, and GitHub actions access, this
+        guide should provide the rest of the information you need.
+      </Paragraph>
+      <Paragraph>
+        If your package is private, you'll also need to authenticate both
+        locally and in any repositories with GitHub actions that depend on your
+        published package.
+      </Paragraph>
+      <Paragraph>
+        Hopefully this clarifies some of the process required for GitHub actions
+        and the NPM package registry, and in doing so enable other teams to use
+        this functionality too. If I can explain the process further, or clarify
+        why we did what we did{" "}
+        <ExternalLink href="https://twitter.com/andy__carrell">
+          please reach out
+        </ExternalLink>
+        . I'm open to feedback, and if you have a completely different way to do
+        what we're doing, I'd love to hear that too.
+      </Paragraph>
     </Stack>
   );
 }
