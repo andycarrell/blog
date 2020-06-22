@@ -153,7 +153,7 @@ export default function Post3() {
         post itself, so for demonstration purposes I'll reference a custom NPM
         script:
       </Paragraph>
-      <Box marginLeft={[4, 4, 6, 6]} padding={2}>
+      <Box marginLeft={[0, 0, 6, 6]} padding={2}>
         <CodeInline>npm run build-library</CodeInline>
       </Box>
       <Paragraph>
@@ -187,7 +187,7 @@ export default function Post3() {
         <CodeInline>.github/workflows</CodeInline> directory of your repository.
       </Quote>
       <Paragraph>
-        The name of the file doesn't matter, we'll call it something like
+        The name of the file doesn't matter, we'll call it something like{" "}
         <CodeInline>publish-library.yml</CodeInline>. Similarly, the name of the
         action isn't too significant, although it does appear in the GitHub
         actions UI, so an identifiable name will help:
@@ -275,7 +275,7 @@ export default function Post3() {
         avoids having to commit sensitive tokens. We can acheive this using bash
         syntax to overwrite a file:
       </Paragraph>
-      <Box marginLeft={[4, 4, 6, 6]} padding={2}>
+      <Box marginLeft={[0, 0, 6, 6]} padding={2}>
         <CodeInline>echo '...' &gt; ~/.npmrc</CodeInline>
       </Box>
       <Paragraph>
@@ -584,7 +584,7 @@ export default function Post3() {
         </ExternalLink>
         .
       </Paragraph>
-      <Box marginLeft={[4, 4, 6, 6]} padding={2}>
+      <Box marginLeft={[0, 0, 6, 6]} padding={2}>
         <CodeInline>
           "@&lt;organisation&gt;/&lt;library&gt;": "0.1.0-3b4c0a0"
         </CodeInline>
@@ -691,7 +691,7 @@ export default function Post3() {
         Find the latest version of your package under the packages tab of your
         projects's repository:
       </Paragraph>
-      <Box marginLeft={[4, 4, 6, 6]} padding={2}>
+      <Box marginLeft={[0, 0, 6, 6]} padding={2}>
         <CodeInline>
           https://github.com/&lt;user-name&gt;/&lt;repo-name&gt;/packages
         </CodeInline>
