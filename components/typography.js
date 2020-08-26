@@ -79,6 +79,20 @@ export const Heading2 = ({ children, ...rest }) => (
   </Text>
 );
 
+export const Heading3 = ({ children, ...rest }) => (
+  <Text
+    marginTop={1}
+    {...rest}
+    fontFamily="heading"
+    fontWeight="medium"
+    fontSize="xl"
+    color="gray.400"
+    as="h3"
+  >
+    {children}
+  </Text>
+);
+
 export const Overline = ({ children, ...rest }) => (
   <Text
     {...rest}
