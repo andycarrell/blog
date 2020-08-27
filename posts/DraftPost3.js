@@ -95,7 +95,7 @@ export default function Post3() {
             push:
               branches:
                 # or your 'default' branch
-                - master
+                - main
               paths:
                 - "library/**"\n
           jobs:
@@ -123,8 +123,8 @@ export default function Post3() {
                 - name: Publish - dry run
                   run: npm publish output -- --dry-run
                 - name: Publish
-                  # only run this step on commit to master
-                  if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+                  # only run this step on commit to main
+                  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
                   run: npm publish output
         `}
       </CodeBlock>
@@ -219,7 +219,7 @@ export default function Post3() {
             push:
               branches:
                 # or your 'default' branch
-                - master
+                - main
               paths:
                 - "library/**"
         `}
@@ -231,8 +231,8 @@ export default function Post3() {
         </ExternalLink>
         . We further refine the conditions in which workflow is triggered
         <Dash />
-        in this example, any git push, to the master branch, where file(s) in
-        the library or directory have changed.
+        in this example, any git push, to the main branch, where file(s) in the
+        library or directory have changed.
       </Paragraph>
       <Paragraph>
         A GitHub action needs at least one "job" (with steps) to run anything.
@@ -382,7 +382,7 @@ export default function Post3() {
             push:
               branches:
                 # or your 'default' branch
-                - master
+                - main
               paths:
                 - "library/**"\n
           jobs:
@@ -410,7 +410,7 @@ export default function Post3() {
       </CodeBlock>
       <Callout>
         At this point you should be publishing every time make changes to your
-        library and push to master
+        library and push to main
         <Dash />
         provided you update the library version with each change. Carefully
         consider if this is an appropriate publishing frequency for your
@@ -435,7 +435,7 @@ export default function Post3() {
           Early feedback
           <Dash />
           if a developer is making a change, can we let them know if the library
-          will publish successfully before committing to master.
+          will publish successfully before committing to main.
         </UnorderedList.Item>
         <UnorderedList.Item>
           Automated unique versioning
@@ -462,7 +462,7 @@ export default function Post3() {
             push:
               branches:
                 # or your 'default' branch
-                - master
+                - main
               paths:
                 - "library/**"\n
           jobs:
@@ -471,7 +471,7 @@ export default function Post3() {
       </CodeBlock>
       <Paragraph>
         Then we need to{" "}
-        <i>only run the publish step when a push (to master) event happens</i>.
+        <i>only run the publish step when a push (to main) event happens</i>.
       </Paragraph>
       <CodeBlock language="yaml">
         {`
@@ -484,7 +484,7 @@ export default function Post3() {
             push:
               branches:
                 # or your 'default' branch
-                - master
+                - main
               paths:
                 - "library/**"\n
           jobs:
@@ -497,8 +497,8 @@ export default function Post3() {
                 # Setup node ...
                 # Install, verify & build ...
                 - name: Publish
-                  # only run this step on commit to master
-                  if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+                  # only run this step on commit to main
+                  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
                   run: npm publish output
         `}
       </CodeBlock>
@@ -527,7 +527,7 @@ export default function Post3() {
             push:
               branches:
                 # or your 'default' branch
-                - master
+                - main
               paths:
                 - "library/**"\n
           jobs:
@@ -553,8 +553,8 @@ export default function Post3() {
                   # this step runs every time, but only takes a few seconds
                   run: npm publish output -- --dry-run
                 - name: Publish
-                  # only run this step on commit to master
-                  if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+                  # only run this step on commit to main
+                  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
                   run: npm publish output
         `}
       </CodeBlock>
@@ -666,7 +666,7 @@ export default function Post3() {
             push:
               branches:
                 # or your 'default' branch
-                - master
+                - main
               paths:
                 - "library/**"\n
           jobs:
@@ -694,8 +694,8 @@ export default function Post3() {
                 - name: Publish - dry run
                   run: npm publish output -- --dry-run
                 - name: Publish
-                  # only run this step on commit to master
-                  if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+                  # only run this step on commit to main
+                  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
                   run: npm publish output
         `}
       </CodeBlock>
