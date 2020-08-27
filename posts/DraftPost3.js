@@ -239,7 +239,7 @@ export default function Post3() {
         Again, the job id and name aren't so important, but will identify the
         job in the GitHub UI:
       </Paragraph>
-      <CodeBlock language="yaml">
+      <CodeBlock language="yaml" highlightedLines={[4, 6, 7, 8]}>
         {`
           # ...
           # on: ...\n
@@ -301,22 +301,18 @@ export default function Post3() {
       <Paragraph>
         We run this immediately after checking out our code:
       </Paragraph>
-      <CodeBlock language="yaml">
+      <CodeBlock language="yaml" highlightedLines={[10, 11]}>
         {`
           # ...
           # on: ...\n
           jobs:
             build:
-              name: Build & publish
-              runs-on: ubuntu-latest
+              # name: ...
               steps:
                 - name: Checkout code
                   uses: actions/checkout@v1
                 - name: Authenticate GitHub package registry
                   run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
-                # Setup node ...
-                # Install ...
-                # Verify & build ...
         `}
       </CodeBlock>
       <Paragraph>
@@ -353,35 +349,18 @@ export default function Post3() {
         <ExternalLink href="https://github.com/actions/setup-node/">
           an action for that too
         </ExternalLink>
-        :
-      </Paragraph>
-      <CodeBlock language="yaml">
-        {`
-          # ...
-          # on: ...\n
-          jobs:
-            build:
-              name: Build & publish
-              runs-on: ubuntu-latest
-              steps:
-                # Checkout ...
-                # Authenticate ...
-                - name: Setup node
-                  uses: actions/setup-node@v1
-        `}
-      </CodeBlock>
-      <Paragraph>
-        Now, we can install, run any verification scripts, build the library and
+        . Now we can install, run verification scripts, build the library and
         finally publish!
       </Paragraph>
-      <CodeBlock language="yaml">
+      <CodeBlock
+        language="yaml"
+        highlightedLines={[19, 20, 21, 22, 23, 25, 26, 28, 29, 30]}
+      >
         {`
-          # .github/workflows/publish-library.yml
           name: Library build & publish
           on:
             push:
               branches:
-                # or your 'default' branch
                 - main
               paths:
                 - "library/**"\n
@@ -394,6 +373,7 @@ export default function Post3() {
                   uses: actions/checkout@v1
                 - name: Authenticate GitHub package registry
                   run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+                  # official action to setup node
                 - name: Setup node
                   uses: actions/setup-node@v1
                 - name: Install
@@ -450,51 +430,23 @@ export default function Post3() {
         the steps, except for actually publishing a new version.
       </Paragraph>
       <Paragraph>
-        First, we need to trigger the action on pull request as well as push:
+        First, we need to trigger the action on pull request as well as push,
+        then we need to{" "}
+        <i>only run the publish step when a push (to main) event happens</i>:
       </Paragraph>
-      <CodeBlock language="yaml">
+      <CodeBlock language="yaml" highlightedLines={[3, 4, 5, 16, 17]}>
         {`
           name: Library build & publish
           on:
             pull_request:
               paths:
                 - "library/**"
-            push:
-              branches:
-                # or your 'default' branch
-                - main
-              paths:
-                - "library/**"\n
-          jobs:
-            # ...
-        `}
-      </CodeBlock>
-      <Paragraph>
-        Then we need to{" "}
-        <i>only run the publish step when a push (to main) event happens</i>.
-      </Paragraph>
-      <CodeBlock language="yaml">
-        {`
-          # .github/workflows/publish-library.yml
-          name: Library build & publish
-          on:
-            pull_request:
-              paths:
-                - "library/**"
-            push:
-              branches:
-                # or your 'default' branch
-                - main
-              paths:
-                - "library/**"\n
+            # push: ...\n
           jobs:
             build:
-              name: Build & publish
-              runs-on: ubuntu-latest
+              # name: ...
               steps:
-                # Checkout ...
-                # Authenticate ...
-                # Setup node ...
+                # Checkout, authenticate & setup node ...
                 # Install, verify & build ...
                 - name: Publish
                   # only run this step on commit to main
@@ -516,9 +468,8 @@ export default function Post3() {
         publish successfully.
       </Paragraph>
       <Paragraph>Our action with pull request feedback:</Paragraph>
-      <CodeBlock language="yaml">
+      <CodeBlock language="yaml" highlightedLines={[29, 31]}>
         {`
-          # .github/workflows/publish-library.yml
           name: Library build & publish
           on:
             pull_request:
@@ -526,7 +477,6 @@ export default function Post3() {
                 - "library/**"
             push:
               branches:
-                # or your 'default' branch
                 - main
               paths:
                 - "library/**"\n
@@ -544,10 +494,8 @@ export default function Post3() {
                 - name: Install
                   run: npm install
                 - name: Verify
-                  # these are custom scripts to run eslint and tests
                   run: npm run lint && npm run test
                 - name: Build
-                  # we use rollup, so our script is 'rollup -c rollup.config.js'
                   run: npm run build-library
                 - name: Publish - dry run
                   # this step runs every time, but only takes a few seconds
@@ -613,49 +561,15 @@ export default function Post3() {
         Our build script takes a version suffix as a command line argument and
         appends that to a semantic version defined in code. Prior to that, we
         parse the first 7 digits of the Git SHA and assign it to an environment
-        variable:
+        variable using:
       </Paragraph>
-      <CodeBlock language="yaml">
-        {`
-          # .github/workflows/publish-library.yml
-          name: Library build & publish
-          on:
-            # pull_request ...
-            # push: ...\n
-          jobs:
-            build:
-              name: Build & publish
-              runs-on: ubuntu-latest
-              steps:
-                # Checkout ...
-                # Authenticate ...
-                - name: Set short sha as environment variable
-                  run: echo ::set-env name=sha_short::$(git rev-parse --short=7 \${{ github.sha }})
-                # Setup node ...
-                # Install, verify ...
-                - name: Build
-                  run: npm run build-library -- --version-suffix \${{ env.sha_short }}
-                # Publish - dry run ...
-                # Publish ...
-        `}
-      </CodeBlock>
-      <Callout>
-        If you're using{" "}
-        <ExternalLink href="https://rollupjs.org/">Rollup</ExternalLink> and are
-        extracting a library from a larger project, or need to manipulate the
-        final <CodeInline backgroundColor="inherit">package.json</CodeInline>, I
-        recommend the rollup plugin{" "}
-        <CodeInline backgroundColor="inherit">
-          <ExternalLink href="https://github.com/vladshcherbin/rollup-plugin-generate-package-json#readme">
-            generate-package-json
-          </ExternalLink>
-        </CodeInline>
-        .<br />
-        It allows you to overwrite the contents of the current file, as well as
-        automatically populating dependencies that are used by your build.
-      </Callout>
-      <Paragraph>The complete action is as follows:</Paragraph>
-      <CodeBlock language="yaml">
+      <Box marginLeft={[0, 0, 6, 6]} padding={2}>
+        <CodeInline children="echo ::set-env name=sha_short::$(git rev-parse --short=7 ${{ github.sha }})" />
+      </Box>
+      <Paragraph>
+        So, the complete action including GitHub SHA versioning is as follows:
+      </Paragraph>
+      <CodeBlock language="yaml" highlightedLines={[23, 24, 32, 33]}>
         {`
           # .github/workflows/publish-library.yml
           name: Library build & publish
@@ -679,7 +593,6 @@ export default function Post3() {
                 - name: Authenticate GitHub package registry
                   run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
                 - name: Set short sha as environment variable
-                  # we use this in our build script to ensure our versions are unique per push
                   run: echo ::set-env name=sha_short::$(git rev-parse --short=7 \${{ github.sha }})
                 - name: Setup node
                   uses: actions/setup-node@v1
@@ -689,7 +602,6 @@ export default function Post3() {
                   # these are custom scripts to run eslint and tests
                   run: npm run lint && npm run test
                 - name: Build
-                  # we use rollup, so our script is 'rollup -c rollup.config.js'
                   run: npm run build-library -- --version-suffix \${{ env.sha_short }}
                 - name: Publish - dry run
                   run: npm publish output -- --dry-run
@@ -699,6 +611,22 @@ export default function Post3() {
                   run: npm publish output
         `}
       </CodeBlock>
+      <Callout>
+        If you're using{" "}
+        <ExternalLink href="https://rollupjs.org/">Rollup</ExternalLink> and are
+        extracting a library from a larger project, or need to manipulate the
+        final <CodeInline backgroundColor="inherit">package.json</CodeInline>, I
+        recommend the rollup plugin{" "}
+        <CodeInline backgroundColor="inherit">
+          <ExternalLink href="https://github.com/vladshcherbin/rollup-plugin-generate-package-json#readme">
+            generate-package-json
+          </ExternalLink>
+        </CodeInline>
+        .<br />
+        It allows you to overwrite the contents of the current file, as well as
+        automatically populating dependencies that are used by your build.
+      </Callout>
+
       <Heading2>Consuming your GitHub package</Heading2>
       <Paragraph>
         Consuming your NPM package requires adding the GitHub registry URL to
@@ -764,13 +692,12 @@ Email: (this IS public) <your github public email>
         authenticate in the same way as we did in our publish action, after we
         checkout, and before we install:
       </Paragraph>
-      <CodeBlock language="yaml">
+      <CodeBlock language="yaml" highlightedLines={[8, 9]}>
         {`
          # ...
           jobs:
             another-action:
-              name: ...
-              runs-on: ubuntu-latest
+              # name: ...
               steps:
                 - name: Checkout code
                   uses: actions/checkout@v1

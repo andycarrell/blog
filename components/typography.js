@@ -152,7 +152,12 @@ export const Quote = ({ children, ...rest }) => (
   </Text>
 );
 
-export const CodeBlock = ({ children, language, ...rest }) => {
+export const CodeBlock = ({
+  children,
+  language,
+  highlightedLines,
+  ...rest
+}) => {
   const { onCopy, hasCopied } = useClipboard(children);
   const buttonLabel = hasCopied ? "Copied" : "Copy";
 
@@ -172,7 +177,12 @@ export const CodeBlock = ({ children, language, ...rest }) => {
         overflowX="scroll"
       >
         <code>
-          <CodeHighlighter language={language}>{children}</CodeHighlighter>
+          <CodeHighlighter
+            language={language}
+            highlightedLines={highlightedLines}
+          >
+            {children}
+          </CodeHighlighter>
         </code>
       </Text>
       <Box as="span" position="absolute" bottom="12px" right="12px">

@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import Highlight, { defaultProps } from "prism-react-renderer";
 import defaultTheme from "prism-react-renderer/themes/nightOwlLight";
 import prettier from "prettier/standalone";
@@ -51,7 +52,15 @@ const LineNumber = ({ children }) => (
   </span>
 );
 
-export default function CodeHighlighter({ children, language = "javascript" }) {
+const Line = styled("div")`
+  ${(props) => props.isHighlighted && `font-weight: 600;`}
+`;
+
+export default function CodeHighlighter({
+  children,
+  language = "javascript",
+  highlightedLines = [],
+}) {
   const formatCode = formatFor[language] ?? formatJavascript;
 
   return (
@@ -63,14 +72,21 @@ export default function CodeHighlighter({ children, language = "javascript" }) {
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
         <div className={className} style={style}>
-          {tokens.map((line, i) => (
-            <div {...getLineProps({ line, key: i })}>
-              <LineNumber>{i + 1}</LineNumber>
-              {line.map((token, key) => (
-                <span {...getTokenProps({ token, key })} />
-              ))}
-            </div>
-          ))}
+          {tokens.map((line, i) => {
+            const displayNumber = i + 1;
+            const isHighlighted = highlightedLines.includes(displayNumber);
+            return (
+              <Line
+                {...getLineProps({ line, key: i })}
+                isHighlighted={isHighlighted}
+              >
+                <LineNumber>{displayNumber}</LineNumber>
+                {line.map((token, key) => (
+                  <span {...getTokenProps({ token, key })} />
+                ))}
+              </Line>
+            );
+          })}
         </div>
       )}
     </Highlight>
