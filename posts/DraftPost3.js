@@ -81,12 +81,11 @@ export default function Post3() {
         </UnorderedList.Item>
       </UnorderedList>
       <Paragraph>
-        The complete GitHub action code is as follows. I've left some comments,
-        but the rest of the post will explain what we did and why.
+        The complete GitHub action code is as follows. Read on for a detailed
+        explanation of what we've done and why.
       </Paragraph>
       <CodeBlock language="yaml">
         {`
-          # .github/workflows/publish-library.yml
           name: Library build & publish
           on:
             pull_request:
@@ -94,7 +93,6 @@ export default function Post3() {
                 - "library/**"
             push:
               branches:
-                # or your 'default' branch
                 - main
               paths:
                 - "library/**"\n
@@ -108,22 +106,18 @@ export default function Post3() {
                 - name: Authenticate GitHub package registry
                   run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
                 - name: Set short sha as environment variable
-                  # we use this in our build script to ensure our versions are unique per push
                   run: echo ::set-env name=sha_short::$(git rev-parse --short=7 \${{ github.sha }})
                 - name: Setup node
                   uses: actions/setup-node@v1
                 - name: Install
                   run: npm install
                 - name: Verify
-                  # these are custom scripts to run eslint and tests
                   run: npm run lint && npm run test
                 - name: Build
-                  # we use rollup, so our script is 'rollup -c rollup.config.js'
                   run: npm run build-library -- --version-suffix \${{ env.sha_short }}
                 - name: Publish - dry run
                   run: npm publish output -- --dry-run
                 - name: Publish
-                  # only run this step on commit to main
                   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
                   run: npm publish output
         `}
