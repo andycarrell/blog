@@ -184,6 +184,25 @@ export default function Post3() {
         build process in a custom script and referencing it in GitHub actions in
         a similar way.
       </Paragraph>
+      <Paragraph>
+        You'll also need to update your library's{" "}
+        <CodeInline>package.json</CodeInline> to include the following
+        configuration:
+      </Paragraph>
+      <CodeBlock language="none">
+        {`
+{
+  // ...
+  publishConfig: { registry: "https://npm.pkg.github.com/" },
+  repository: {
+    type: "git",
+    url: "ssh://git@github.com:<user-name>/<library-name>.git",
+    directory: "output"
+  }
+  // ...
+}
+        `}
+      </CodeBlock>
       <Heading2>Create a GitHub action</Heading2>
       <Paragraph>
         If you're familiar with GitHub actions, or you understand what's going
@@ -554,7 +573,7 @@ export default function Post3() {
       </Paragraph>
       <Box marginLeft={[0, 0, 6, 6]} padding={2}>
         <CodeInline>
-          "@&lt;organisation&gt;/&lt;library&gt;": "0.1.0-3b4c0a0"
+          "@&lt;user-name&gt;/&lt;library&gt;": "0.1.0-3b4c0a0"
         </CodeInline>
       </Box>
       <Paragraph>
