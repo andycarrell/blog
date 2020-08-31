@@ -402,8 +402,8 @@ export default function Post3() {
         `}
       </CodeBlock>
       <Callout>
-        At this point you should be publishing every time make changes to your
-        library and push to main
+        At this point you should be publishing every time you make changes and
+        push to main
         <Dash />
         provided you update the library version with each change. Carefully
         consider if this is an appropriate publishing frequency for your
@@ -411,9 +411,9 @@ export default function Post3() {
       </Callout>
       <Paragraph>
         Our motivation for publishing in this way is to minimise the time (and
-        effort) making a change and consuming it in another project. The cost of
-        this is we have many versions each containing small changes, which are
-        also often undocumented. This doesn't make for a good consumer
+        effort) taken to make a change and consume it in another project. The
+        cost of this is we have many versions each containing small changes,
+        which are also often undocumented. This doesn't make for a good consumer
         experience. However, in this case it's a library for internal use only,
         and generally developers making the changes are also consuming them.
         It's also something we can definitely iterate on.
@@ -427,7 +427,7 @@ export default function Post3() {
         <UnorderedList.Item>
           Early feedback
           <Dash />
-          if a developer is making a change, can we let them know if the library
+          if a developer is making a change, we can let them know if the library
           will publish successfully before committing to main.
         </UnorderedList.Item>
         <UnorderedList.Item>
@@ -741,7 +741,7 @@ Email: (this IS public) <your github public email>
       <Heading2>Conclusion</Heading2>
       <Paragraph>
         Hopefully this clarifies some of the process required for GitHub actions
-        and the NPM package registry, and in doing so enable other teams to use
+        and the NPM package registry, and in doing so enables other teams to use
         this functionality too. If I can explain the process further, or clarify
         why we did what we did{" "}
         <ExternalLink href="https://twitter.com/andy__carrell">
