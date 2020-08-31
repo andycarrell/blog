@@ -1,11 +1,8 @@
 import Error from "next/error";
 import { useRouter } from "next/router";
-import Post, { SEO } from "posts/DraftPost3";
 import { BlogPost } from "components/layout";
 
-const draftsFor = {
-  "publishing-an-npm-library-on-github": [Post, SEO],
-};
+const draftsFor = {};
 
 export function getStaticPaths() {
   if (Number(process.env.DRAFTS)) {
@@ -24,7 +21,7 @@ export function getStaticProps() {
 
 export default function Index() {
   const { query } = useRouter();
-  const [Post, SEO] = draftsFor[query.slug];
+  const [Post, SEO] = draftsFor[query.slug] || [];
 
   if (Post) {
     return (

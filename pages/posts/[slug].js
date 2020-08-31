@@ -2,11 +2,13 @@ import Error from "next/error";
 import { useRouter } from "next/router";
 import Post1, { SEO as SEOPost1 } from "posts/Post1";
 import Post2, { SEO as SEOPost2 } from "posts/Post2";
+import Post3, { SEO as SEOPost3 } from "posts/Post3";
 import { BlogPost } from "components/layout";
 
 const postFor = {
   "mocking-graphql-in-cypress": [Post1, SEOPost1],
   "mocking-graphql-in-cypress-v5": [Post2, SEOPost2],
+  "publishing-an-npm-library-on-github": [Post3, SEOPost3],
 };
 
 export function getStaticPaths() {
@@ -22,7 +24,7 @@ export function getStaticProps() {
 
 export default function Index() {
   const { query } = useRouter();
-  const [Post, SEO] = postFor[query.slug];
+  const [Post, SEO] = postFor[query.slug] || [];
 
   if (Post) {
     return (
