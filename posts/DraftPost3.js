@@ -738,6 +738,35 @@ Email: (this IS public) <your github public email>
         </CodeInline>
         ), makes them available to GitHub actions.
       </Paragraph>
+      <Heading2>Private packages</Heading2>
+      <Paragraph>
+        If you publish a private package (
+        <ExternalLink href="https://docs.github.com/en/packages/publishing-and-managing-packages/about-github-packages#about-github-packages">
+          which happens by default for private repositories
+        </ExternalLink>
+        ), then you may run into the following issues.
+      </Paragraph>
+      <Heading3>NPM audit</Heading3>
+      <Paragraph>
+        <CodeInline>npm audit</CodeInline> is a useful tool{" "}
+        <ExternalLink href="https://docs.npmjs.com/cli/audit">
+          that scans your project for vulnerabilities,
+        </ExternalLink>{" "}
+        but it will fail with the following error:
+      </Paragraph>
+      <Quote>
+        Your configured registry (https://npm.pkg.github.com/&lt;user-name&gt;)
+        does not support audit requests.
+      </Quote>
+      <Heading3>Dependabot automated dependency updates</Heading3>
+      <Paragraph>
+        Similarly, at the time of writing, Dependabot doesn't support updating
+        dependency files that use private package registries. There is an{" "}
+        <ExternalLink href="https://github.community/t/dependabot-cannot-update-this-dependency-private-registry/118355">
+          outstanding GitHub community issue
+        </ExternalLink>{" "}
+        for this issue.
+      </Paragraph>
       <Heading2>Conclusion</Heading2>
       <Paragraph>
         Hopefully this clarifies some of the process required for GitHub actions
