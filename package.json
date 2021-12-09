@@ -12,7 +12,6 @@
     "dev": "remix dev",
     "format": "prettier --write \"**/*.{tsx,ts,js,json}\"",
     "postinstall": "remix setup node",
-    "start": "remix-serve build",
     "typecheck": "tsc --watch"
   },
   "dependencies": {
