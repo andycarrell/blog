@@ -1,8 +1,12 @@
-import path from "path";
-import fs from "fs/promises";
 import { marked } from "marked";
 import invariant from "tiny-invariant";
 import parseFrontMatter from "front-matter";
+import type { FrontMatterResult } from "front-matter";
+
+const githubUrl =
+  "https://api.github.com/repos/andycarrell/blog/contents/posts";
+// whilst we're working on a branch, we need to query by that branch
+const query = "?ref=remix";
 
 export type PostType = {
   slug: string;
@@ -13,8 +17,9 @@ export type PostMarkdownAttributes = {
   title: string;
 };
 
-// relative to the server output not the source!
-const postsPath = path.join(__dirname, "../..", "posts");
+type PostMarkdownFile = {
+  name: `${string}.md`;
+};
 
 function isValidPostAttributes(
   attributes: unknown
@@ -22,37 +27,69 @@ function isValidPostAttributes(
   return "title" in (attributes as PostMarkdownAttributes);
 }
 
-export async function getPosts() {
-  const dir = await fs.readdir(postsPath);
-  return Promise.all(
-    dir.map(async (filename) => {
-      const file = await fs.readFile(path.join(postsPath, filename));
-      const { attributes } = parseFrontMatter(file.toString());
+function isValidPostMarkdownFile(file: unknown): file is PostMarkdownFile {
+  return (
+    "name" in (file as PostMarkdownFile) &&
+    (file as PostMarkdownFile).name.endsWith(".md")
+  );
+}
 
+async function getPostFromGitHub(
+  fileName: string
+): Promise<FrontMatterResult<PostMarkdownAttributes>> {
+  const res = await fetch(`${githubUrl}/${fileName}${query}`, {
+    headers: {
+      Accept: "application/vnd.github.v3.raw",
+      Authorization: `token ${process.env.GITHUB_TOKEN}`,
+    },
+  });
+
+  const { attributes, ...rest } = parseFrontMatter(await res.text());
+
+  invariant(
+    isValidPostAttributes(attributes),
+    `${fileName} has bad meta data!`
+  );
+
+  return { attributes, ...rest };
+}
+
+async function getPostsFromGitHub() {
+  const res = await fetch(`${githubUrl}${query}`, {
+    headers: {
+      Accept: "application/vnd.github.v3+json",
+      Authorization: `token ${process.env.GITHUB_TOKEN}`,
+    },
+  });
+
+  const posts: PostMarkdownFile[] = (await res.json()).filter(
+    (file: unknown) => {
       invariant(
-        isValidPostAttributes(attributes),
-        `${filename} has bad meta data!`
+        isValidPostMarkdownFile(file),
+        `${file} is not a valid markdown file!`
       );
 
-      return {
-        slug: filename.replace(/\.md$/, ""),
-        title: attributes.title,
-      };
+      return file;
+    }
+  );
+
+  return posts;
+}
+
+export async function getPosts() {
+  const data = await getPostsFromGitHub();
+
+  return Promise.all(
+    data.map(async ({ name }) => {
+      const { attributes } = await getPostFromGitHub(name);
+
+      return { slug: name.replace(/\.md$/, ""), title: attributes.title };
     })
   );
 }
 
 export async function getPost(slug: string) {
-  const filepath = path.join(postsPath, slug + ".md");
-  const file = await fs.readFile(filepath);
-  const { attributes, body } = parseFrontMatter(file.toString());
+  const { attributes, body } = await getPostFromGitHub(`${slug}.md`);
 
-  invariant(
-    isValidPostAttributes(attributes),
-    `Post ${filepath} is missing attributes`
-  );
-
-  const html = marked(body);
-
-  return { slug, html, title: attributes.title };
+  return { slug, html: marked(body), title: attributes.title };
 }
