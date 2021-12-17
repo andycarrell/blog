@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "remix build",
-    "dev": "remix dev",
+    "dev": "node -r dotenv/config node_modules/.bin/remix dev",
     "format": "prettier --write \"**/*.{tsx,ts,js,json}\"",
     "postinstall": "remix setup node",
     "typecheck": "tsc --watch"
@@ -31,6 +31,7 @@
     "@remix-run/dev": "1.0.6",
     "@types/react": "17.0.37",
     "@types/react-dom": "17.0.11",
+    "dotenv": "10.0.0",
     "prettier": "2.5.1"
   }
 }
