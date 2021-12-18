@@ -1,6 +1,6 @@
 import { Link, useLoaderData } from "remix";
-import { getPosts } from "~/post";
-import type { PostType } from "~/post";
+import { getPosts } from "~/data/post";
+import type { PostType } from "~/data/post";
 
 export async function loader(): Promise<PostType[]> {
   return getPosts();
