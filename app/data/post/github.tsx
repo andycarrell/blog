@@ -1,4 +1,8 @@
-import type { PostFilenameType, PostFileType } from "./PostFile";
+import type {
+  GetPostFileFunction,
+  GetPostFilesFunction,
+  PostFileType,
+} from "./PostFile";
 
 const githubUrl =
   "https://api.github.com/repos/andycarrell/blog/contents/posts";
@@ -8,13 +12,12 @@ const query = "ref=remix";
 function isValidPostFile(file: unknown): file is PostFileType {
   return (
     "name" in (file as PostFileType) &&
+    typeof (file as PostFileType).name === "string" &&
     (file as PostFileType).name.endsWith(".md")
   );
 }
 
-export async function getPost(
-  filename: PostFilenameType
-): Promise<PostFileType> {
+export const getPost: GetPostFileFunction = async (filename) => {
   const res = await fetch(`${githubUrl}/${filename}?${query}`, {
     headers: {
       Accept: "application/vnd.github.v3.raw",
@@ -23,9 +26,9 @@ export async function getPost(
   });
 
   return { name: filename, contents: await res.text() };
-}
+};
 
-export async function getPosts() {
+export const getPosts: GetPostFilesFunction = async () => {
   const res = await fetch(`${githubUrl}?${query}`, {
     headers: {
       Accept: "application/vnd.github.v3+json",
@@ -42,4 +45,4 @@ export async function getPosts() {
       return file;
     })
   );
-}
+};

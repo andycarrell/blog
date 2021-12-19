@@ -1,14 +1,16 @@
 import path from "path";
 import fs from "fs/promises";
 
-import type { PostFilenameType, PostFileType } from "./PostFile";
+import type {
+  GetPostFileFunction,
+  GetPostFilesFunction,
+  PostFilenameType,
+} from "./PostFile";
 
 // relative to the server output not the source!
 const postsPath = path.join(__dirname, "../..", "posts");
 
-export async function getPost(
-  filename: PostFilenameType
-): Promise<PostFileType> {
+export const getPost: GetPostFileFunction = async (filename) => {
   const filepath = path.join(postsPath, filename);
   const file = await fs.readFile(filepath);
 
@@ -16,9 +18,9 @@ export async function getPost(
     name: filename,
     contents: file.toString(),
   };
-}
+};
 
-export async function getPosts(): Promise<PostFileType[]> {
+export const getPosts: GetPostFilesFunction = async () => {
   const dir = await fs.readdir(postsPath);
   return Promise.all(
     dir.map(async (filename) => {
@@ -27,4 +29,4 @@ export async function getPosts(): Promise<PostFileType[]> {
       return file;
     })
   );
-}
+};
