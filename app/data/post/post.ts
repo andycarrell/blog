@@ -6,6 +6,8 @@ import type { FrontMatterResult } from "front-matter";
 import * as github from "./github";
 import * as local from "./local";
 
+import type { PostFilenameType } from "./PostFile";
+
 const dataSource = process.env.DATA_SOURCE === "local" ? local : github;
 
 export type PostType = {
@@ -24,14 +26,14 @@ function isValidPostAttributes(
 }
 
 async function getMarkdownPost(
-  fileName: string
+  filename: PostFilenameType
 ): Promise<FrontMatterResult<PostMarkdownAttributes>> {
-  const { contents } = await dataSource.getPost(fileName);
+  const { contents } = await dataSource.getPost(filename);
   const { attributes, ...rest } = parseFrontMatter(contents);
 
   invariant(
     isValidPostAttributes(attributes),
-    `${fileName} has bad meta data!`
+    `${filename} has bad meta data!`
   );
 
   return { attributes, ...rest };
