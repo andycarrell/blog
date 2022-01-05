@@ -1,0 +1,429 @@
+---
+title: Publishing an NPM package on GitHub
+description: Follow this guide to find out how to publish and consume libraries from GitHub's NPM package registry.
+---
+
+# Publishing an NPM package on GitHub
+
+This is a guide to publishing and consuming a node package / library to <a href="https://help.github.com/en/packages/publishing-and-managing-packages/about-github-packages">the GitHub package registry</a>
+, specifically for <a href="https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-npm-for-use-with-github-packages">NPM</a>. The combination of GitHub packages and <a href="https://github.com/features/actions">actions</a> makes sharing code between repositories easier than ever before. I encourage you to have a good read of both sets of documentation - all the information you need is in the official documentation, or associated forums. This post distills down that information, focuses in on NPM, and outlines the process that's working for the frontend team at <a href="https://www.jasper.io/">Jasper</a>.
+
+## Overview
+
+The output of this blog post should be a working GitHub action. As we progress through the post we will:
+
+* Create a GitHub action that builds and publishes your library on push to your main branch.
+* Ensure the action only runs if the library files have changed.
+* Extend the action to perform a "dry run" of publishing the package, to confirm everything will run as expected before you commit.
+* Discuss how to access the GitHub NPM registry locally and in continuous integration.
+* Mention some of the stumbling blocks we encountered along the way.
+
+The complete GitHub action code is as follows. Read on for a detailed explanation of what we've done and why.
+
+```yml
+name: Library build & publish
+on:
+  pull_request:
+    paths:
+      - "library/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "library/**"
+
+jobs:
+  build:
+    name: Build & publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Authenticate GitHub package registry
+        run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+      - name: Set short sha as environment variable
+        run: echo ::set-env name=sha_short::$(git rev-parse --short=7 \${{ github.sha }})
+      - name: Setup node
+        uses: actions/setup-node@v1
+      - name: Install
+        run: npm install
+      - name: Verify
+        run: npm run lint && npm run test
+      - name: Build
+        run: npm run build-library -- --version-suffix \${{ env.sha_short }}
+      - name: Publish - dry run
+        run: npm publish output -- --dry-run
+      - name: Publish
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm publish output
+```
+
+## Assumptions
+
+Ths blog post assumes:
+
+* You're using GitHub!
+* GitHub packages is enabled for your respository.
+* You're already bundling / building your library code.
+
+### GitHub packages
+
+<a href="https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/using-github-packages-with-github-actions">Check GitHub packages are available for your repository</a>. From what I can tell, if you navigate to `https://github.com/<user-name>/<repo-name>/packages` and you see the following screen, you're good to go:
+
+![](/assets/publishing-an-npm-package-on-github/github-packages.png)
+
+If not, you may have to dive into your plan and even reach out to GitHub for help. Some legacy plans may be excluded from using packages. On that note, if you're developing a package in a private repository <a href="https://github.com/features/packages#pricing">double check prices</a> and usage for your current plan, otherwise if public, at the time of writing it's all free!
+
+### Library build
+
+I assume you're already able to bundle / build your library code into a form that you're happy to publish. How we configure and test our library warrants a blog post itself, so for demonstration purposes I'll reference a custom NPM script:
+
+> `npm run build-library`
+
+Our build uses <a href="https://rollupjs.org/">Rollup</a> and outputs to `output/*`. I recommend wrapping your build process in a custom script and referencing it in GitHub actions in a similar way.
+
+You'll also need to update your library's `package.json` to include the following configuration:
+
+```json
+{
+  "publishConfig": { "registry": "https://npm.pkg.github.com/" },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com:<user-name>/<library-name>.git",
+    "directory": "output"
+  }
+}
+```
+
+## Create a GitHub action
+
+If you're familiar with GitHub actions, or you understand what's going on in the example code then you can probably skip the following. More information on the syntax mentioned can be <a href="https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions/"> found in the documentation</a>.
+
+We start by defining a <a href="https://en.wikipedia.org/wiki/YAML/">YAML</a> file in the GitHub workflows directory `.github/workflows` From the docs:
+
+> You must store workflow files in the `.github/workflows` directory of your repository.
+
+The name of the file doesn't matter, we'll call it something like `publish-library.yml`. Similarly, the name of the action isn't too significant, although it does appear in the GitHub actions UI, so an identifiable name will help:
+
+```yml
+name: Library build & publish
+on:
+  push:
+    branches:
+      # or your 'default' branch
+      - main
+    paths:
+      - "library/**"
+```
+
+The "on" configuration defines which <a href="https://help.github.com/en/actions/reference/events-that-trigger-workflows/">events will trigger your workflow</a>. We further refine the conditions in which workflow is triggered - in this example, any git push, to the main branch, where file(s) in the library or directory have changed.
+
+A GitHub action needs at least one "job" (with steps) to run anything. Again, the job id and name aren't so important, but will identify the job in the GitHub UI:
+
+```yml
+# ...
+# on: ...
+
+jobs:
+  # job 'id'
+  build:
+    name: Build & publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+```
+
+If we want to run an action with or against our code we need to check it out first. Whilst GitHub doesn't do that by default, we can simply reference <a href="https://github.com/actions/checkout/">the checkout action</a>.
+
+> This action checks-out your repository under `$GITHUB_WORKSPACE`, so your workflow can access it.
+
+Also note the <a href="https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on">runs-on property</a> - this is required and specifies the type of machine to run the job on. There's a few options, but for a node / npm based action `ubuntu-latest` will work fine.
+
+To publish a package, we need to authenticate our action for the GitHub NPM registry. The <a href="https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-npm-for-use-with-github-packages#authenticating-to-github-packages">official documentation</a> recommends a couple of ways of doing this, neither of which were practical for use in an continuous integration (CI) context. The solution we found involves appending the <a href="https://help.github.com/en/actions/configuring-and-managing-workflows/authenticating-with-the-github_token">`GITHUB_TOKEN`</a> to the `.npmrc` file _after checkout_, which avoids having to commit sensitive tokens. We can acheive this using bash syntax to overwrite a file:
+
+> `echo '...' > ~/.npmrc`
+
+We run this immediately after checking out our code:
+
+```yml
+# ...
+# on: ...
+
+jobs:
+  build:
+    # name: ...
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Authenticate GitHub package registry
+        run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+```
+
+For reference, the <a href="https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-npm-for-use-with-github-packages#authenticating-to-github-packages">recommended approaches for authenticating</a> are:
+
+* <a href="https://docs.npmjs.com/cli/adduser/">`npm login`</a> - requires CLI input so won't work in CI.
+* <a href="https://www.graphql-tools.com/docs/generate-schema/">Editing your per-user</a> `~/.npmrc` file - requires committing sensitive auth tokens in the project's `~/.npmrc` file.
+
+To run node in our GitHub action, we need to set it up - there's <a href="https://github.com/actions/setup-node/">an action for that too</a>. Now we can install, run verification scripts, build the library and finally publish!
+
+```yml
+name: Library build & publish
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "library/**"
+
+jobs:
+  build:
+    name: Build & publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Authenticate GitHub package registry
+        run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+        # official action to setup node
+      - name: Setup node
+        uses: actions/setup-node@v1
+      - name: Install
+        run: npm install
+      - name: Verify
+        # these are custom scripts to run eslint and tests
+        run: npm run lint && npm run test
+      - name: Build
+        # we use rollup, so our script is 'rollup -c rollup.config.js'
+        run: npm run build-library
+      - name: Publish
+        run: npm publish output
+```
+
+---
+
+> At this point you should be publishing every time you make changes and push to main - provided you update the library version with each change. Carefully consider if this is an appropriate publishing frequency for your library.
+
+---
+
+Our motivation for publishing in this way is to minimise the time (and effort) taken to make a change and consume it in another project. The cost of this is we have many versions each containing small changes, which are also often undocumented. This doesn't make for a good consumer experience. However, in this case it's a library for internal use only, and generally developers making the changes are also consuming them. It's also something we can definitely iterate on.
+
+To improve the developer experience of contributing to our library - we added the following features:
+
+* Early feedback - if a developer is making a change, we can let them know if the library will publish successfully before committing to main.
+* Automated unique versioning - for a given change, we assume the developer wants a new version released, without the chore of releasing it themselves.
+
+## Pull request dry run
+
+We can update our GitHub action so that on every pull request we run all the steps, except for actually publishing a new version.
+
+First, we need to trigger the action on pull request as well as push, then we need to _only run the publish step when a push (to main) event happens_:
+
+```yml
+name: Library build & publish
+on:
+  pull_request:
+    paths:
+      - "library/**"
+  # push: ...
+
+jobs:
+  build:
+    # name: ...
+    steps:
+      # Checkout, authenticate & setup node ...
+      # Install, verify & build ...
+      - name: Publish
+        # only run this step on commit to main
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm publish output
+```
+
+Finally, on pull requests we can perform a "dry run" of publishing:
+
+> <a href="https://docs.npmjs.com/cli/publish/">`[--dry-run]` As of npm@6, does everything publish would do except actually publishing to the registry.</a>
+
+This is useful as it shows whether the change will actually build and publish successfully.
+
+Ou action with pull request feedback:
+
+```yml
+name: Library build & publish
+on:
+  pull_request:
+    paths:
+      - "library/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "library/**"
+
+jobs:
+  build:
+    name: Build & publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Authenticate GitHub package registry
+        run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+      - name: Setup node
+        uses: actions/setup-node@v1
+      - name: Install
+        run: npm install
+      - name: Verify
+        run: npm run lint && npm run test
+      - name: Build
+        run: npm run build-library
+      - name: Publish - dry run
+        # this step runs every time, but only takes a few seconds
+        run: npm publish output -- --dry-run
+      - name: Publish
+        # only run this step on commit to main
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm publish output
+```
+
+---
+
+> For even earlier feedback, take a look at <a href="https://github.com/nektos/act/">`nektos/act`</a>. It allows you to run actions locally - be careful you don't accidentally publish a new version!
+
+---
+
+## Versioning
+
+As the action stands, the <a href="https://docs.npmjs.com/cli/publish/">publish step will fail</a> unless the developer remembers to update the version with each change.
+
+> Once a package is published with a given name and version, that specific name and version combination can never be used again, even if it is removed with npm-unpublish.
+
+Additionally, if multiple developers are working on the library at the same time, they'll need to coordinate to ensure that they don't land on the same new version, or that a later version lands before an earlier one.
+
+These issues highlight a manual process that could be improved by automation - both the choice of version, and applying a new version with each change. To achieve this, we apply the constraint that each of our versions consists of a standard <a href="https://semver.org/">semantic version</a> and a unqiue suffix, which is the (short) <a href="https://blog.thoughtram.io/git/2014/11/18/the-anatomy-of-a-git-commit.html/">Git SHA</a>.
+
+> `"@<user-name>/<library>": "0.1.0-3b4c0a0"`
+
+Our build script takes a version suffix as a command line argument and appends that to a semantic version defined in code. Prior to that, we parse the first 7 digits of the Git SHA and assign it to an environment variable using:
+
+> `echo ::set-env name=sha_short::$(git rev-parse --short=7 ${{ github.sha }})`
+
+So, the complete action including GitHub SHA versioning is as follows:
+
+```yml
+# .github/workflows/publish-library.yml
+name: Library build & publish
+on:
+  pull_request:
+    paths:
+      - "library/**"
+  push:
+    branches:
+      # or your 'default' branch
+      - main
+    paths:
+      - "library/**"
+
+jobs:
+  build:
+    name: Build & publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Authenticate GitHub package registry
+        run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.GITHUB_TOKEN }}' > ~/.npmrc
+      - name: Set short sha as environment variable
+        run: echo ::set-env name=sha_short::$(git rev-parse --short=7 \${{ github.sha }})
+      - name: Setup node
+        uses: actions/setup-node@v1
+      - name: Install
+        run: npm install
+      - name: Verify
+        # these are custom scripts to run eslint and tests
+        run: npm run lint && npm run test
+      - name: Build
+        run: npm run build-library -- --version-suffix \${{ env.sha_short }}
+      - name: Publish - dry run
+        run: npm publish output -- --dry-run
+      - name: Publish
+        # only run this step on commit to main
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: npm publish output
+```
+
+---
+
+> If you're using <a href="https://rollupjs.org/">Rollup</a> and are extracting a library from a larger project, or need to manipulate the final `package.json`, I recommend the rollup plugin <a href="https://github.com/vladshcherbin/rollup-plugin-generate-package-json#readme">`generate-package-json`</a>.
+
+> It allows you to overwrite the contents of the current file, as well as automatically populating dependencies that are used by your build.
+
+---
+
+## Consuming your GitHub package
+
+Consuming your NPM package requires adding the GitHub registry URL to your `.npmrc`:
+
+> `registry=https://npm.pkg.github.com/<user-name>;`
+
+Find the latest version of your package under the packages tab of your projects's repository:
+
+> `https://github.com/<user-name>/<repo-name>/packages`
+
+Add this version to the `package.json` of the project where you want to consume it.
+
+If your project's repository is private, then the package will be too. To give yourself access to install locally, you'll need to authenticate <a href="https://docs.npmjs.com/cli/adduser">an NPM registry user account</a>.
+
+First, create a <a href="https://github.com/settings/tokens/new">new GitHub token</a> with the `read:packages` scope. Adding `write:packages` and `delete:packages` will be helpful if you plan on managing packages from the command line. Keep the access token handy for the next step.
+
+Next, enter the following commands into your terminal:
+
+```bash
+# cd into your root folder
+cd ~
+
+# authenticate for the GitHub package registry
+npm adduser --registry=https://npm.pkg.github.com/ --scope=<user-name>
+
+# command line will prompt you for your details
+Username: <your github username>
+Password: <paste github access token>
+Email: (this IS public) <your github public email>
+```
+
+You should then have access to install and use your package locally.
+
+To authenticate GitHub actions in other repositories, you'll need to authenticate in the same way as we did in our publish action, after we checkout, and before we install:
+
+```yml
+# ...
+jobs:
+  another-action:
+    # name: ...
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+      - name: Authenticate GitHub package registry
+        run: echo '//npm.pkg.github.com/:_authToken=\${{ secrets.NPM_TOKEN }}' > ~/.npmrc
+      # Setup node ...
+      # Install, verify ...
+```
+
+Note that we use a different secret key (here called `NPM_TOKEN`) because:
+
+> <a href="https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/using-github-packages-with-github-actions/"> `GITHUB_TOKEN` cannot install packages from any private repository besides the repository where the action runs.</a>
+
+You can create another token or use the same one you created for local usage. Storing secrets against the repo (`https://github.com/<user-name>/<repo-name>/settings/secrets`), makes them available to GitHub actions.
+
+## Private packages
+
+If you publish a private package (<a href="https://docs.github.com/en/packages/publishing-and-managing-packages/about-github-packages#about-github-packages">which happens by default for private repositories</a>), then you may run into the following issues.
+
+### NPM audit
+
+`npm audit` is a useful tool <a href="https://docs.npmjs.com/cli/audit">that scans your project for vulnerabilities,</a> but it will fail with the following error:
+
+> Your configured registry (https://npm.pkg.github.com/<user-name>) does not support audit requests.
+
+## Conclusion
+
+Hopefully this clarifies some of the process required for GitHub actions and the NPM package registry, and in doing so enables other teams to use this functionality too. If I can explain the process further, or clarify why we did what we did <a href="https://twitter.com/andy__carrell">please reach out</a>. I'm open to feedback, and if you have a completely different way to do what we're doing, I'd love to hear that too.
