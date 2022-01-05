@@ -13,7 +13,7 @@ function isValidPostFile(file: unknown): file is PostFileType {
   return (
     "name" in (file as PostFileType) &&
     typeof (file as PostFileType).name === "string" &&
-    (file as PostFileType).name.endsWith(".md")
+    (file as PostFileType).name.endsWith(".mdx")
   );
 }
 
