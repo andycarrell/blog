@@ -17,6 +17,7 @@ export type PostType = {
 
 export type PostMarkdownAttributes = {
   title: string;
+  description: string;
 };
 
 function isValidPostAttributes(
@@ -46,13 +47,21 @@ export async function getPosts() {
     data.map(async ({ name }) => {
       const { attributes } = await getMarkdownPost(name);
 
-      return { slug: name.replace(/\.md$/, ""), title: attributes.title };
+      return {
+        slug: name.replace(/\.mdx$/, ""),
+        title: attributes.title,
+      };
     })
   );
 }
 
 export async function getPost(slug: string) {
-  const { attributes, body } = await getMarkdownPost(`${slug}.md`);
+  const { attributes, body } = await getMarkdownPost(`${slug}.mdx`);
 
-  return { slug, html: marked(body), title: attributes.title };
+  return {
+    slug,
+    html: marked(body),
+    title: attributes.title,
+    description: attributes.description,
+  };
 }

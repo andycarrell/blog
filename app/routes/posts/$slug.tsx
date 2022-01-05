@@ -1,5 +1,5 @@
-import { useLoaderData } from "remix";
 import type { LoaderFunction, MetaFunction } from "remix";
+import { useLoaderData } from "remix";
 import invariant from "tiny-invariant";
 
 import { getPost } from "~/data/post";
@@ -15,11 +15,12 @@ export const loader: LoaderFunction = ({ params }) => {
 export const meta: MetaFunction = ({ data }) => {
   return {
     title: `${data.title} - andycarrell`,
+    description: data.description,
   };
 };
 
 export default function PostSlug() {
   const post = useLoaderData();
 
-  return <div dangerouslySetInnerHTML={{ __html: post.html }} />;
+  return <article dangerouslySetInnerHTML={{ __html: post.html }} />;
 }

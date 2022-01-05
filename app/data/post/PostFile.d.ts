@@ -1,4 +1,4 @@
-export type PostFilenameType = `${string}.md`;
+export type PostFilenameType = `${string}.md` | `${string}.mdx`;
 
 export type PostFileType = {
   name: PostFilenameType;
